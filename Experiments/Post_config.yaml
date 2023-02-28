@@ -1,0 +1,49 @@
+params:
+  order: ['_gradient','inputtgradient','integratedgradients','lens']
+  bnd: 2
+  bs: 32
+  SAMPLEQ: 100
+  classChunk: 10
+  rss: 34515
+  plot:
+    ens: 15
+  XAI:
+    pval: [95,5]
+    biasBool: False
+    annType: 'class'
+    startYear: 1920
+    additional: 1
+    addType: [ 'NG','FG' ]
+    addxai: [ 'NoiseGrad','FusionGrad' ]
+
+directory: '/home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/savedModels/'
+diroutput: /home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/Data/
+dirpaper:  '/home/philineB/Projects/XAI_for_ClimateChange/Paper/Data/'
+dirhome: '/home/philineB/Projects/XAI_for_ClimateChange/'
+dirquantus: /home/philineB/Projects/QuantusXClimate/
+dirdata: /home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/Data/
+
+datasets: ['ALL']
+datafiles: ['lens']
+mod: 0
+
+season: ['annual']
+exptype: 'uncleaned'
+masked: [58, 79, 115, 136]
+
+nyears: 40
+
+lr: 0.01
+
+variq: 'T2M'
+SAMPLEQ: 2
+variables: ['T2M']
+seasons: ['annual']
+reg_name: 'Globe'
+dataset_obs: '20CRv3'
+dir_raw: '/home/philineB/Projects/Data/'
+
+datatype: 'training'
+
+start_year: 1920
+end_year: 2080

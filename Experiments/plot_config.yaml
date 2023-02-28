@@ -1,0 +1,73 @@
+params:
+  isel: 1
+  rss: 34515
+  sdf: .8
+  SAMPLEQ: 2
+  bnd: 2
+  bs: 32
+  classChunk: 10
+  plot:
+    ens: 15
+    types: 'continuous'
+    labelsize: 16
+    fontsize: 20
+    isel: [3,4]
+    vaxis: [0.92, 0.15, 0.01, 0.25]
+  XAI:
+    biasBool: False
+    annType: 'class'
+    startYear: 1920
+    rel: [0.1, 0.09, 0.1, 0.2]
+    pval: [95,5]
+    eps: [0.025, 0.05, 0.075, 0.1]
+    additional: 1
+    addType: ['NG','FG']
+    addxai: ['NoiseGrad','FusionGrad']
+
+directory: /home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/
+dirpaper:  /home/philineB/Projects/XAI_for_ClimateChange/Paper/
+dirquantus: /home/philineB/Projects/QuantusXClimate/
+dirhome: '/home/philineB/Projects/XAI_for_ClimateChange/'
+
+ch_yrs: [2068]
+
+only: 0
+base: 1
+
+property: "Robustness"
+include_titles: True
+include_legend: True
+
+
+nyears: 24
+variq: 'T2M'
+SAMPLEQ: 100
+n_xai: 50
+n_smps: 50
+n_sms: 10
+variables: ['T2M']
+seasons: ['annual']
+weighted: 0
+
+start_year: 1920
+end_year: 2080
+
+UAIp_file: 'UAI'
+net: 'MLP'
+pred: 'wrong'
+datatype: 'cleaned'
+datasets: ['ALL']
+
+
+ctoff: 0.05
+reg_name: 'Globe'
+dataset_obs: '20CRv3'
+dir_raw: '/home/philineB/Projects/Data/'
+
+add_raw: 1
+HPs: 'noise'
+
+fname: 'ExplanationComparison_%s_%s_%s_XAI_%s'
+
+
+datafiles: ['lens']

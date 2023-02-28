@@ -1,0 +1,87 @@
+
+diroutput: '/home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/Data/'
+dirBase: '/home/philineB/Projects/XAI_for_ClimateChange/Baseline/'
+dirhome: '/home/philineB/Projects/XAI_for_ClimateChange/'
+dirdata: '/home/philineB/Projects/Data/'
+dirfig: '/home/philineB/Projects/XAI_for_ClimateChange/Baseline/Single_v2/'
+
+datasets: [r'ALL']
+
+datafiles: ['lens']
+
+season: 'annual'
+reg_name: 'Globe'
+variq: 'T2M'
+exp: 0
+rss: 34515
+sis: 0
+
+aHC: 0
+lr: 0.001
+sdf: .8
+useGPU: False
+cascade: False
+plot_in_train: False
+
+start_year: 1920
+end_year: 2080
+
+SAMPLEQ: 1
+cleverHans: False
+uai: True
+bs: 32
+train:
+  classChunkHalf: 5
+  debug: True
+  iSeed: 8
+  avgHalfChunk: 0
+  invert_year_output: True
+  biasBool: False
+  hiddensList: [[ 20, 20 ]]
+  ridge_penalty: [ 0.01 ]
+  actFun: 'relu'
+  expList: [(0)]
+  random_segment: True
+  foldsN: 1
+  annType: 'class'
+  momentum: 0.9
+  nesterov: 1
+
+
+params:
+  rm_annual_mean: False
+  rm_merid_mean: False
+  land_only: False
+  ocean_only: False
+  iterations: [50]
+  SAMPLEQ: 100
+  classChunk: 10
+  chclass: 3
+  XAI:
+      layer_idx: 0.95
+      sample: SAMPLEQ
+      method: 'LRP'
+      dty: 'obs'
+      yrtol: 2.
+      alpha: 2
+      beta: 1
+      augment_by_n: 150
+      noise_scale: 0.5
+      std: 0.25
+  lr: 0.001
+  batch_size: 32
+  net: 'CNN'
+  interpret: 'training'
+  train:
+    epochs: 100
+    nets: '2layer'
+    loss: "binary_crossentropy"
+    verbose: 1
+    dropout: 0.9
+    'not_train': False
+
+
+
+random_network_seed: False
+dataset_obs: '20CRv3'
+obs_year: 2015
