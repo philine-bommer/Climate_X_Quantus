@@ -101,19 +101,13 @@ def significance_ranking(
         for keys2, val in data_mean[keys1].items():
             var = data_var[keys1][keys2]
             mean = val
-            # var_mag = int(math.floor(math.log10(var)))
-            # var = np.round(var, abs(var_mag))
-            # mean_plus = val + var
-            # mean_minus = val - var
-            # data_mean['keys1']
+
             var_mag = int(math.floor(math.log10(var)))
             mean_mag = int(math.floor(math.log10(mean)))
             if mean_mag == var_mag:
                 data_mean[keys1][keys2] = np.round(mean, abs(mean_mag))
             else:
-                # if var*np.power(10,abs(var_mag))< 5:
-                #     data_mean[keys1][keys2] = np.floor(mean, abs(var_mag))
-                # else:
+
                 data_mean[keys1][keys2] = np.around(mean, abs(var_mag))
 
     ranks = data_mean.rank(method='max')
@@ -137,7 +131,7 @@ def aggregation_mean_var(metrics: Dict,
     num_xai = params.get('num_xai', 8)
     string_list = params.get('min_norm', ["Randomisation", "Robustness"])
 
-    #Initialize result dicts.
+    # Initialize result dicts.
     means = {}
     var = {}
     # Aggregate mean and SEM.

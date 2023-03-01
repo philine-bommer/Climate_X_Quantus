@@ -62,9 +62,7 @@ def read_SINGLE_LENS(directory,simulation,vari,sliceperiod,slicebase,sliceshape,
                   slicenan,takeEnsMean)
     """
     print('\n>>>>>>>>>> STARTING read_SINGLE_LENS function!')
-    
-    ### Import modules
-    # from CphXAI.cphxai2.src.utils.utilities_standard import *
+
 
     warnings.simplefilter(action='ignore', category=FutureWarning)
     warnings.simplefilter(action='ignore', category=RuntimeWarning)

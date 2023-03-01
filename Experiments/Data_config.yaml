@@ -1,8 +1,5 @@
-
-diroutput: '/home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/Data/'
-dirBase: '/home/philineB/Projects/XAI_for_ClimateChange/Baseline/'
 dirhome: '/home/philineB/Projects/XAI_for_ClimateChange/'
-dirdata: '/home/philineB/Projects/Data/'
+
 
 datasets: [r'ALL']
 
@@ -15,7 +12,7 @@ exp: 0
 rss: 34515
 sis: 0
 
-aHC: 0
+save: 0
 sdf: .8
 
 start_year: 1920

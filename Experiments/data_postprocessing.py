@@ -29,25 +29,30 @@ if __name__=='__main__':
     settings = yaml.load(open('%s/%s_results.yaml' % (cfd, data_settings['params']['net'])), Loader=yaml.FullLoader)
 
     data_settings = yaml.load(open('%s/%s_data.yaml' % (cfd, data_settings['params']['net'])), Loader=yaml.FullLoader)
-    dirs = config['directory']
+    dirhome = data_settings['dirhome']
     net = data_settings['params']['net']
 
-    directory = config['directory'] + net + '/'
     params = config['params']
     params['net'] = net
-    directory = config['directory'] + net + '/'
     directorydataoutput = settings['diroutput']
     datasetsingle = config['datafiles']
     seasons = config['season']
     lr_here = settings['lr']
-    params['dirdata'] = config['dir_raw']
-    nsamples = config['params']['SAMPLEQ']
-    params['seasons'] = config['seasons']
-    params['reg_name'] = config['reg_name']
-    params['dataset_obs'] = config['dataset_obs']
-    params['start_year'] = config['start_year']
-    params['end_year'] = config['end_year']
-    params['dirpaper'] = config['dirpaper']
+    params['dirdata'] = data_settings['dir_raw']
+    nsamples = settings['SAMPLEQ']
+    params['seasons'] = settings['seasons']
+    params['reg_name'] = settings['reg_name']
+    params['dataset_obs'] = data_settings['dataset_obs']
+    params['start_year'] = settings['start_year']
+    params['end_year'] = settings['end_year']
+
+    dircorrect = settings['dirnet'] + 'Ensembles/'
+    if os.path.isdir(dircorrect):
+        print("Path does exist")
+    else:
+        print("Path does not exist:", sys.exc_info()[0])
+        os.mkdir(directoryeval)
+    params['dirpaper'] = dircorrect
     xai_methods = settings['xai_methods']
 
     yearsall = []
@@ -60,9 +65,9 @@ if __name__=='__main__':
     try:
         dicts = np.load(dirhome + 'Random_Seed_List_nsamp_%s.npz' % config['params']['SAMPLEQ'])
         rand_seed = dicts['random_seed']
-        filelist = ul.list_files_from_seeds(directory, rand_seed)
+        filelist = ul.list_files_from_seeds(data_settings['dirnet'], rand_seed)
     except:
-        filelist = ul.list_files(directory)
+        filelist = ul.list_files(data_settings['dirnet'])
 
 
     for ds in range(len(yearsall)):
@@ -71,8 +76,8 @@ if __name__=='__main__':
 
         sublisth5, sublistnpz = ul.list_multisubs(filelist, datasetsingle[ds], 'tf', str(params['rss']))
 
-        mod = config['mod']
-        directoryeval = config['dirquantus'] + 'Data/' + net + '/'
+        mod = config['mod'] # leave at 0 in config if only 1 trained model.
+        directoryeval = config['dirhome'] + 'Data/' + 'Quantus/' + net + '/'
 
         if os.path.isdir(directoryeval):
             print("Path does exist")
@@ -89,7 +94,7 @@ if __name__=='__main__':
             os.mkdir(directoryeval)
 
 
-        model = keras.models.load_model(directory + sublisth5[mod])
+        model = keras.models.load_model(data_settings['dirnet'] + sublisth5[mod])
 
         model.compile(optimizer=keras.optimizers.SGD(lr=lr_here, momentum=0.9, nesterov=True),
                       loss='binary_crossentropy',
@@ -115,28 +120,25 @@ if __name__=='__main__':
 
         XtrainS, XtestS, stdVals = uc.standardize_data(Xtrain, Xtest)
 
+        # Reshape Data.
+        inpts = np.append(XtrainS, XtestS, axis=0) # Inputs
+        indcs = np.append(trainensnum, testensnum, axis=0) # Ensemble indicies for training and testing data.
+        otpts = np.append(YtrainClassMulti, YtestClassMulti, axis=0) #Prediction targets (class vector with probabilities)
+        outs = np.append(Ytrain, Ytest, axis=0) #Years of the input maps (Regression targets)
 
-        inpts = np.append(XtrainS, XtestS, axis=0)
-        indcs = np.append(trainensnum, testensnum, axis=0)
-
-
-        otpts = np.append(YtrainClassMulti, YtestClassMulti, axis=0)
-
-
-        outs = np.append(Ytrain, Ytest, axis=0)
+        # Identify correct predictions.
         params['yall'] = params['yearsall']
         crrctYrs = uc.idf_corrct_prdctn(outs, inpts, model, **params)
-            #
+
+        # Save correct prediction markers (years per ensemble memeber)
         params['filename'] = 'Correct_Ensembles_network%s_%s_%s' %(mod,config['datatype'],config['datasets'][0])
         params['saveens'] = directoryeval
-            #
-        params['save'] = 1
         enssort, ensnums, ensYrs = uc.sort_per_ens(crrctYrs, indcs, outs, **params)
 
 
 
-        ### Individudal explanations:
 
+        # Load individual explanations.
         directorydata = config['dirdata']
         xaidataname = settings['dataname']
         params['dirdata'] = config['dir_raw']
@@ -168,6 +170,7 @@ if __name__=='__main__':
         else:
             explanations = explanations.reshape(dts.shape[0],dts.shape[1],dts.shape[2]*dts.shape[3])
 
+        # Sort out incorrect predictions.
         inpts, otpts, explanations = uc.select_batch(inpts, otpts, explanations)
 
         savename1 = 'Postprocessed_data_%s.npz' %(config['datasets'][0])

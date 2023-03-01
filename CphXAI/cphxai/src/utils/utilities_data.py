@@ -82,18 +82,7 @@ def readFiles(variq, dataset, monthlychoice, dirs):
                                                   monthlychoice, sliceyearTW,
                                                   sliceshapeTW, addclimoTW,
                                                   slicenanTW)
-    # elif dataset == 'RANDOM':
-    #
-    #     directorydataRA = dirs
-    #     slicebaseRA = np.arange(1951, 1980 + 1, 1)
-    #     sliceshapeRA = 4
-    #     slicenanRA = 'nan'
-    #     addclimoRA = True
-    #     takeEnsMeanRA = False
-    #     lat1, lon1, data, ENSmean = read_randomData_monthly(directorydataRA, variq,
-    #                                                            monthlychoice, slicebaseRA,
-    #                                                            sliceshapeRA, addclimoRA,
-    #                                                            slicenanRA, takeEnsMeanRA)
+
     elif any([dataset == 'GHG', dataset == 'AER']):
 
         directorySI = dirs + 'LENS/monthly/'
@@ -104,8 +93,6 @@ def readFiles(variq, dataset, monthlychoice, dirs):
         slicenanSI = 'nan'
         addclimoSI = True
         takeEnsMeanSI = False
-        # if dataset == 'AER':
-        #     pdb.set_trace()
         lat1, lon1, data, ENSmean = read_LENS(directorySI, simulationSI, variq, monthlychoice,
                                                         slicebaseSI, sliceshapeSI, addclimoSI,
                                                         slicenanSI, takeEnsMeanSI)

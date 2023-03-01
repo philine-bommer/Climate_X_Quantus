@@ -187,8 +187,10 @@ def run_quantus(args: Dict,
                     scores.append(score)
             elif metric in ["Robustness", "LocalLipschitzEstimate", "AvgSensitivity"]:
                 scores = []
-                if method[2] is "Control Var. Random Uniform":
-                    method[1] = {'fix': 0}
+                if method[0] == "Control Var. Random Uniform":
+                    as_list = list(method)
+                    as_list[1] = {'fix': 0}
+                    method = tuple(as_list)
                 if params['net'] == 'CNN':
                     for i in range(args["n_iter"]):
                         score = metric_func(model=args['model'],
@@ -231,59 +233,3 @@ def run_quantus(args: Dict,
 
     return results
 
-
-'''
-def run_quantus(args: Dict,
-                explanations: Dict,
-                metrics: Dict,
-                xai_methods: Any,
-                **params,
-                ):
-    """
-    Function running pre-defined evaluation metrics in quantus on different explanation techniques
-    :param model:
-    :param x_batch:
-    :param y_batch:
-    :param explanations:
-    :param s_batch:
-    :param metrics:
-    :param xai_methods:
-    :return:
-    """
-
-    # Score explanation methods using Quantus.
-    results = {k[2]: {} for k in xai_methods}
-    dirout = params['dirout']
-    csv_file = params['csvfile']
-    for method in xai_methods:
-        for metric, metric_func in metrics.items():
-            print(method[2], ":", metric)
-            if method[2] == 'NoiseGrad' or method[2] == 'FusionGrad':
-                scores = metric_func(model=args['model'],
-                                     x_batch=args['x_batch'],
-                                     y_batch=args['y_batch'],
-                                     a_batch=explanations[method[2]],
-                                     s_batch=args['s_batch'],
-                                     **{"explain_func": generate_tf_innvestigation,
-                                        "method": method,
-                                        "noise_type": "multiplicative",
-                                        "net": args['net']})
-            else:
-                scores = metric_func(model=args['model'],
-                                     x_batch=args['x_batch'],
-                                     y_batch=args['y_batch'],
-                                     a_batch=explanations[method[2]],
-                                     s_batch=args['s_batch'],
-                                     **{"explain_func": generate_tf_innvestigation,
-                                        "method": method,
-                                        "noise_type": "multiplicative",
-                                        "net": args['net']})
-
-
-            results[method[2]][metric] = scores
-        df = pd.DataFrame(results)
-        df.to_csv(dirout + csv_file, index=False, header=False)
-
-    return results
-
-'''

@@ -16,8 +16,6 @@ params:
     addType: [ 'NG','FG' ]
     addxai: [ 'NoiseGrad','FusionGrad' ]
 
-directory: '/home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/savedModels/'
-diroutput: /home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/Data/
 dirpaper:  '/home/philineB/Projects/XAI_for_ClimateChange/Paper/Data/'
 dirhome: '/home/philineB/Projects/XAI_for_ClimateChange/'
 dirquantus: /home/philineB/Projects/QuantusXClimate/
@@ -26,6 +24,7 @@ dirdata: /home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/D
 datasets: ['ALL']
 datafiles: ['lens']
 mod: 0
+save: 1
 
 season: ['annual']
 exptype: 'uncleaned'
@@ -36,12 +35,11 @@ nyears: 40
 lr: 0.01
 
 variq: 'T2M'
-SAMPLEQ: 2
+SAMPLEQ: 1
 variables: ['T2M']
 seasons: ['annual']
 reg_name: 'Globe'
 dataset_obs: '20CRv3'
-dir_raw: '/home/philineB/Projects/Data/'
 
 datatype: 'training'
 

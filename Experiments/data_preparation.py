@@ -36,10 +36,10 @@ plt.rc('font', **{'family': 'sans-serif', 'sans-serif': ['Avant Garde']})
 ###############################################################################
 ###############################################################################
 ### Data preliminaries
-dirdata = settings['dirdata']
-datasetsingle = settings['datafiles']
-seasons = settings['season']
-timelens = np.arange(settings['start_year'], settings['end_year'] + 1, 1)
+dirdata = settings['dirhome'] + 'Data/Raw/' # directory of raw data
+datasetsingle = settings['datafiles'] # do not change in config
+seasons = settings['season'] # do not change in config
+timelens = np.arange(settings['start_year'], settings['end_year'] + 1, 1) #do not change in config
 yearsall = [timelens]
 
 
@@ -48,24 +48,16 @@ bs = settings['bs']
 reg_name = settings['reg_name']
 variq = settings['variq']
 params = settings['params']
+
+# Set paths for in and out-files.
 dirhome = settings['dirhome']
-
-
-dirBase = settings['dirBase']
 avgHalfChunk = settings['aHC']
 
-directorydata = dirhome + 'Data/'
+directorydata = settings['dirhome'] + 'Data/Training/'
 if not os.path.isdir(directorydata):
     print("Data path does not exist")
     os.mkdir(directorydata)
-### Begin model
 
-
-directorydataoutput = settings['diroutput'] + params['net'] + '/' + 'Paper/'
-
-if not os.path.isdir(directorydataoutput):
-    print("outpath does not exist")
-    os.mkdir(directorydataoutput)
 
 
 sis = settings['sis']
@@ -94,46 +86,39 @@ for seas in range(len(seasons)):
     avgHalfChunk = settings['aHC']
 
 
-    ### Parameters
+    # Parameters for label generation.
     debug = settings['train']['debug']
     classChunkHalf = settings['train']['classChunkHalf']
     classChunk = params['classChunk']
+    exp = settings['exp']
 
     expList = settings['train']['expList']
     expN = np.size(expList)
 
     params['yearsall'] = yearsall[sis]
 
-    """Data Loading"""
 
+    # Load simulation model data.
     lat_bounds, lon_bounds = dt.regions(reg_name)
-    data_all, lats, lons = dt.read_primary_dataset(variq, dataset,
+    data, lats, lons = dt.read_primary_dataset(variq, dataset,
                                                    lat_bounds,
                                                    lon_bounds, monthlychoice, dirdata)
-    data_obs_all, lats_obs, lons_obs = dt.read_obs_dataset(variq, dataset_obs,
+    # Load observation data.
+    data_obs, lats_obs, lons_obs = dt.read_obs_dataset(variq, dataset_obs,
                                                            lat_bounds,
                                                            lon_bounds, monthlychoice, yearsall, sis, dirdata)
 
-    # for exp in expList:
-    exp = settings['exp']
-
-    # get the data together
-    data, data_obs, = data_all, data_obs_all,
-
-    if (avgHalfChunk != 0):
-        data = uc.movingAverageInputMaps(data, avgHalfChunk)
 
 
-    # ---------------------------
+    # Data segmentation for network training.
     random_segment_seed = settings['rss']  # None
-    # ---------------------------
 
     Xtrain, Ytrain, Xtest, Ytest, Xtest_shape, Xtrain_shape, data_train_shape, \
     data_test_shape, testIndices, trainIndices, random_segment_seed = dt.segment_data(data, segment_data_factor,
                                                                                       sis, yearsall[sis], debug,
                                                                                       random_segment_seed)
 
-    # Convert year into decadal class
+    # Convert year into decadal class.
     startYear = yearsall[sis].min()
     endYear = yearsall[sis].max()
     params['startYear'] = startYear
@@ -144,7 +129,7 @@ for seas in range(len(seasons)):
                                                  startYear,
                                                  classChunk, yearsall[sis])
 
-    # For use later
+    # Reshape data for CNN.
     if params['net'] == 'CNN':
 
         Xtrain = dt.shape_data(Xtrain, data)
@@ -155,15 +140,12 @@ for seas in range(len(seasons)):
     Xmean, Xstd = stdVals
 
 
-    ###############################################################
-    ### Get obs
+    # Prepare observational data for model testing.
     dataOBSERVATIONS = data_obs
     latsOBSERVATIONS = lats_obs
     lonsOBSERVATIONS = lons_obs
 
 
-    if (avgHalfChunk != 0):
-        dataOBSERVATIONS = uc.movingAverageInputMaps(dataOBSERVATIONS, avgHalfChunk)
     Xobs = dataOBSERVATIONS.reshape(dataOBSERVATIONS.shape[0],
                                     dataOBSERVATIONS.shape[1] * dataOBSERVATIONS.shape[2])
 
@@ -171,6 +153,7 @@ for seas in range(len(seasons)):
     if dataset_obs == '20CRv3':
         yearsObs = year_obsall
 
+    # Standardize observation data
     annType = settings['train']['annType']
     years = np.arange(startYear, endYear + 1, 1)
     Xmeanobs = np.nanmean(Xobs, axis=0)
@@ -184,7 +167,7 @@ for seas in range(len(seasons)):
             XobsS = dt.shape_data(XobsS, dataOBSERVATIONS)
 
 
-    ## Define variable for analysis
+    # Print data variable for reference.
     print('\n\n------------------------')
     print(variq, '= Variable!')
     print(monthlychoice, '= Time!')
@@ -193,6 +176,7 @@ for seas in range(len(seasons)):
     print(dataset, '= Model!')
     print(dataset_obs, '= Observations!\n')
 
+    # Save preprocessed data.
     dataname = 'Preprocessed_data_%s_CESM1_obs_%s.npz' %(params['net'],dataset_obs)
     np.savez(directorydata + dataname, trainModels=trainIndices,
              testModels=testIndices, Xtrain=Xtrain, Ytrain=Ytrain, Xtest=Xtest, Ytest=Ytest,
@@ -201,19 +185,16 @@ for seas in range(len(seasons)):
              YtestClassMulti = YtestClassMulti, decadeChunks = decadeChunks,data = data, data_obs =data_obs, XobsS = XobsS,
              yearsObs = yearsObs, Xstdobs= Xstdobs, Xmeanobs= Xmeanobs,
              lons_obs = lons_obs, lats_obs =lats_obs, obsyearstart =obsyearstart)
-    datanames = 'Preprocessed_modeldata_%s_CESM1.npz' % (params['net'])
-    np.savez(directorydata + datanames, XtrainS=XtrainS, Ytrain=Ytrain, XtestS=XtestS, Ytest=Ytest,
-             lats=lats, lons=lons, YtrainClassMulti=YtrainClassMulti,
-             testIndices=testIndices, trainIndices=trainIndices,
-             YtestClassMulti=YtestClassMulti, decadeChunks=decadeChunks,Xmean= Xmean, Xstd= Xstd)
+
 
     datasetsingle = settings['datafiles']
     seasons = settings['season']
 
-
+# Save data preperation settings.
 settingsout = yaml.load(open('%s/Data_config.yaml' %cfd), Loader=yaml.FullLoader)
 settingsout['diroutput'] = directorydata
 settingsout['data_name'] = dataname
+settingsout['data_raw'] = dirdata
 
 yaml_outfile = '%s/%s_data.yaml' %(cfd, params['net'])
 

@@ -1,9 +1,6 @@
 
 diroutput: '/home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/Data/'
-dirBase: '/home/philineB/Projects/XAI_for_ClimateChange/Baseline/'
 dirhome: '/home/philineB/Projects/XAI_for_ClimateChange/'
-dirdata: '/home/philineB/Projects/Data/'
-dirfig: '/home/philineB/Projects/XAI_for_ClimateChange/Baseline/Single_v2/'
 
 datasets: [r'ALL']
 

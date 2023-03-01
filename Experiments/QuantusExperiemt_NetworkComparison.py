@@ -37,14 +37,12 @@ cfd = os.path.dirname(os.path.abspath(__file__))
 data_settings = yaml.load(open('%s/Data_config.yaml' %cfd), Loader=yaml.FullLoader)
 settings = yaml.load(open('%s/%s_results.yaml' %(cfd,data_settings['params']['net'])), Loader=yaml.FullLoader)
 post_settings = yaml.load(open('%s/Post_config.yaml' %cfd), Loader=yaml.FullLoader)
-config = yaml.load(open('/home/philineB/Projects/CCxai/tests/plot_config.yaml'), Loader=yaml.FullLoader)
+config = yaml.load(open('%s/plot_config.yaml' %cfd), Loader=yaml.FullLoader)
 
 # Set paths.
-dirs = config['directory']
 dirdata = settings['diroutput']
-directoryeval = config['dirquantus'] + 'Data/' + config['net'] + '/'
 
-dirout = config['dirquantus'] + 'Evaluation/'
+dirout = data_settings['dirhome'] + 'Evaluation/'
 if not os.path.isdir(dirout):
     print("Results path does not exist")
     os.mkdir(dirout)
@@ -63,7 +61,7 @@ num_y = config['nyears']
 n_smpl = settings['params']['SAMPLEQ']
 datasetsingle = settings['datafiles']
 years = np.arange(config['start_year'], config['end_year'] + 1, 1)
-init = (len(years)//num_y)#//2
+init = (len(years)//num_y)
 config['net'] = data_settings['params']['net']
 
 
@@ -112,28 +110,9 @@ for methods in xai_methods:
     methods_name.append(methods[2])
 
 # Set up Random Baseline.
-# if config['base']:
-#     methods_name.append("Control Var. Random Uniform")
-#     xai_methods.append(("Control Var. Random Uniform", {}, "Control Var. Random Uniform"))
-
-
-# if params['XAI']['additional']:
-#     if config['only']:
-#         methods_name = []
-#         xai_methods = []
-#         csv_file = 'analysis_viz_boxplot_data_xai_%s_%s.csv' % (len(xai_methods), config['net'])
-#     argsn = {}
-#     argsn['dtype'] = "flat"
-#     if config['net'] == 'CNN':
-#         argsn['img_height'] = all["Input"].shape[1]
-#         argsn['img_width'] = all["Input"].shape[2]
-#     argsn['y_out'] = all["Labels"][sample_indices_viz]
-#     argsn['std'] = 0.25
-#     for i in range(len(params['XAI']['addxai'])):
-#         if params['XAI']['addxai'][i] == 'FusionGrad':
-#             argsn['sgd'] = 7.0
-#         methods_name.append(params['XAI']['addxai'][i])
-#         xai_methods.append((params['XAI']['addxai'][i], argsn, params['XAI']['addxai'][i]))
+if config['base']:
+    methods_name.append("Control Var. Random Uniform")
+    xai_methods.append(("Control Var. Random Uniform", {}, "Control Var. Random Uniform"))
 
 # Load explanations.
 explanations = {}
@@ -271,42 +250,49 @@ include_titles = config['include_titles']
 include_legend = config['include_legend']
 
 # Make spyder graph!
-data = [df_normalised_rank.columns.values, (df_normalised_rank.to_numpy())]
+
+if config['real']:
+    # Plot real scores.
+    data = [df.columns.values, (df.to_numpy())]
+else:
+    #plot ranks.
+    data = [df_normalised_rank.columns.values, (df_normalised_rank.to_numpy())]
+
 theta = stats.radar_factory(len(data[0]), frame='polygon')
 spoke_labels = data.pop(0)
 
-dashesStyles = [[3,1],
-            [1000,1],
-            [2,1,10,1],
-            [4, 1, 1, 1, 1, 1]]
 
 fig, ax = plt.subplots(figsize=(16, 10), subplot_kw=dict(projection='radar'))
 fig.subplots_adjust(top=0.85, bottom=0.05)
 # pdb.set_trace()
 for i, (d, method) in enumerate(zip(data[0], xai_methods)):
     if "Random" in method[2]:
-        line = ax.plot(theta, d, label=method[2], color='b', linewidth=5.0,) #linestyle = '-',dashes=dashesStyles[i%len(dashesStyles)],)
+        line = ax.plot(theta, d, label=method[2], color='b', linewidth=5.0, linestyle = '-')
         ax.fill(theta, d, alpha=0.15)
     elif "LRPcomp" in method[2]:
         line = ax.plot(theta, d, label=method[2], color= '#fb9a99', linewidth=3.)
     else:
         if config['net'] == 'CNN' and i >5:
             i -=1
-        line = ax.plot(theta, d, label=method[2], color=colours_order[i%len(colours_order)], linewidth=3.)#, linestyle = '-',dashes=dashesStyles[i%len(dashesStyles)],)
+        line = ax.plot(theta, d, label=method[2], color=colours_order[i%len(colours_order)], linewidth=3.)
         ax.fill(theta, d, alpha=0.15)
 
 
 
 # Set lables.
 if include_titles:
+    # Adjust to chosen essential properties for your explanation method -> if neglecting Localisation or Randomisation
     ax.set_varlabels(labels=['Robustness', ' \n\nFaithfulness', '\nLocalisation', '\nComplexity', ' \n\nRandomisation'])
 else:
     ax.set_varlabels(labels=[])
 
-ax.set_rgrids(np.arange(0, df_normalised_rank.values.max() + 0.5), labels=[])
+if config['real']:
+    # Set real scores.
+    ax.set_rgrids(np.arange(0, df.values.max() + 0.1, 0.1), labels=[])
+else:
+    # Set rank scores.
+    ax.set_rgrids(np.arange(0, df_normalised_rank.values.max() + 0.5), labels=[])
 
-# Set a title.
-# ax.set_title("Quantus analysis",  position=(0.5, 1.1), ha='center')
 
 # Put a legend to the right of the current axis.
 if include_legend:

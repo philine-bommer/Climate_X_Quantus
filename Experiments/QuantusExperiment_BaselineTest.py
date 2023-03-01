@@ -27,12 +27,10 @@ cfd = os.path.dirname(os.path.abspath(__file__))
 data_settings = yaml.load(open('%s/Data_config.yaml' %cfd), Loader=yaml.FullLoader)
 settings = yaml.load(open('%s/%s_results.yaml' %(cfd,data_settings['params']['net'])), Loader=yaml.FullLoader)
 post_settings = yaml.load(open('%s/Post_config.yaml' %cfd), Loader=yaml.FullLoader)
-config = yaml.load(open('/home/philineB/Projects/CCxai/tests/plot_config.yaml'), Loader=yaml.FullLoader)
+config = yaml.load(open('%s/plot_config.yaml' %cfd), Loader=yaml.FullLoader)
 
 # Set paths.
-dirs = config['directory']
 dirdata = settings['diroutput']
-directoryeval = config['dirquantus'] + 'Data/' + config['net'] + '/'
 
 dirout = config['dirquantus'] + 'Evaluation/'
 if not os.path.isdir(dirout):
