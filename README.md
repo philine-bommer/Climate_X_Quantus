@@ -49,7 +49,20 @@ Further citations referring to used other used and referenced packages will be p
 7. [Further references](#Refs)
 
 ## Motivation
+
+Explainable artificial intelligence (XAI) methods shed light on the predictions of deep neural networks (DNNs). 
+Several different approaches exist and have partly already been successfully applied in climate science. 
+However, the often missing ground truth explanations complicate their evaluation and validation, subsequently compounding the choice of the XAI
+method. Therefore, in this work, we introduce XAI evaluation in the context of climate research and assess different desired explanation properties, namely, robustness, faithfulness, randomization,
+complexity, and localization.
 </p>
 <p align="center">
   <img width="600" src="https://github.com/philine-bommer/Climate_X_Quantus/blob/main/FinalFirstGraph_v1.png">
-</p>
+
+
+Build upon previous research **[Labe et. al. 2021](https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2021MS002464)** this repository includes experiments to train an MLP and a CNN based on 2m-temperature maps to predict the respective decade class (see step 1 in Figure above which illustrates this workflow). 
+To make the decision comprehensible, several explanation methods are applied, which vary in their explained evidence and might lead to different conclusions (step 2 in the Figure above). 
+Therefore, in two experiment you can apply XAI evaluation techniques from [Quantus by Hedström et. al. 2022](https://www.jmlr.org/papers/volume24/22-0142/22-0142.pdf) to quantitatively measure the performance of the different XAI methods (step 3 in Figure above). 
+We provide experiments to score the different explanation methods and compare the scores to the score achieved by a Random Baseline drawn from a uniform distribution U[0,1]. The scores are also ranked and we provide means to plot the normalized scores 
+as well as the ranked scores in a spyder plot (based on [Quantus by Hedström et. al. 2022](https://www.jmlr.org/papers/volume24/22-0142/22-0142.pdf)) to provide statements about the respective suitability for the underlying climate task.
+With this work hope to supports climate researchers in the selection of a suitable XAI method.
