@@ -5,7 +5,9 @@
 
 This repository contains the code and supplementary packages for the paper **["Finding the right XAI Method --- A Guide for the Evaluation and Ranking of Explainable AI Methods in Climate Science](https://arxiv.org/abs/2303.00652)**  by Bommer et. al.
 
-![Python version](https://upload.wikimedia.org/wikipedia/commons/f/fc/Blue_Python_3.7_Shield_Badge.svg) ![Conda - License](https://img.shields.io/conda/l/conda-forge/setuptools)
+![Conda - License](https://img.shields.io/conda/l/conda-forge/setuptools) 
+
+![Python version](https://upload.wikimedia.org/wikipedia/commons/f/fc/Blue_Python_3.7_Shield_Badge.svg)  ![Tensorflow](https://img.shields.io/badge/Tensorflow%20-1.15-orange) ![INNvestigate](https://img.shields.io/badge/INNvestigate-1.0.9-orange)
 
 This code is currently under active development and will be continuously updated including further tutorials and version which will provide fully running 
 experiment version. Further requirements such as preprocessed download are currently necessary to reproduce paper results.
@@ -59,9 +61,25 @@ complexity, and localization, as provided by [Quantus by Hedström et. al. 2022]
   <img width="600" src="https://github.com/philine-bommer/Climate_X_Quantus/blob/main/FinalFirstGraph_v1.png">
 
 
-Building upon previous research **[Labe et. al. 2021](https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2021MS002464)** this repository includes experiments to train an MLP and a CNN based on 2m-temperature maps to predict the respective decade class (see step 1 in Figure above which illustrates this workflow). 
+Building upon previous research [Labe et. al. 2021](https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2021MS002464) this repository includes experiments to train an MLP and a CNN based on 2m-temperature maps to predict the respective decade class (see step 1 in Figure above which illustrates this workflow). 
 To make the decision comprehensible, several explanation methods are applied, which vary in their explained evidence and might lead to different conclusions (step 2 in the Figure above). 
 Therefore, in two experiment you can apply XAI evaluation metrics from [Quantus by Hedström et. al. 2022](https://www.jmlr.org/papers/volume24/22-0142/22-0142.pdf) to quantitatively measure the performance of the different XAI methods (step 3 in Figure above). 
 We provide experiments to score the different explanation methods and compare the scores to the score achieved by a Random Baseline drawn from a uniform distribution U[0,1]. The scores are also ranked and we provide means to plot the normalized scores 
 as well as the ranked scores in a spyder plot (based on [Quantus by Hedström et. al. 2022](https://www.jmlr.org/papers/volume24/22-0142/22-0142.pdf)) to provide statements about the respective suitability for the underlying climate task.
 With this work hope to supports climate researchers in the selection of a suitable XAI method.
+
+## Additional Libraries
+
+The code offered in this repository and provided experiments are partly based on and extensions of exsisting code libraries. 
+We want to acknowledge the following contributions:
+
+* **CphXAI-Package**: Data preprocessing, network structure and training code is based on [Code](https://zenodo.org/record/4890496#.ZACRqS8w1pQ) by [Labe et. al. 2021](https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2021MS002464)
+  
+
+* **NoiseGrad-Package**: NoiseGrad and FusionGrad extensions for TF 1 are based on [Package](https://github.com/understandable-machine-intelligence-lab/NoiseGrad) by [Bykov et. al. 2022](https://agupubs.onlinelibrary.wiley.com/doi/pdf/10.1029/2021MS002464)
+
+
+* **[QuantusClimate](https://github.com/philine-bommer/QuantusClimate)**: Fork with TF1 models and parallelized computation of Faithfulness, Robustness and Randomisation metrics, of the [Quantus Package](https://github.com/understandable-machine-intelligence-lab/Quantus) by [Hedström et. al. 2022](https://www.jmlr.org/papers/volume24/22-0142/22-0142.pdf)
+
+
+
