@@ -5,7 +5,7 @@
 
 This repository contains the code and supplementary packages for the paper **["Finding the right XAI Method --- A Guide for the Evaluation and Ranking of Explainable AI Methods in Climate Science](https://arxiv.org/abs/2303.00652)**  by Bommer et. al.
 
-![Conda - License](https://img.shields.io/conda/l/conda-forge/setuptools) ![Version](https://img.shields.io/badge/version-0.0.1-green)
+![Version](https://img.shields.io/badge/version-0.0.1-green)
 
 ![Python version](https://upload.wikimedia.org/wikipedia/commons/f/fc/Blue_Python_3.7_Shield_Badge.svg)  ![Tensorflow](https://img.shields.io/badge/Tensorflow%20-1.15-orange) ![INNvestigate](https://img.shields.io/badge/INNvestigate-1.0.9-orange)
 
