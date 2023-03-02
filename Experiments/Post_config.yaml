@@ -16,10 +16,6 @@ params:
     addType: [ 'NG','FG' ]
     addxai: [ 'NoiseGrad','FusionGrad' ]
 
-dirpaper:  '/home/philineB/Projects/XAI_for_ClimateChange/Paper/Data/'
-dirhome: '/home/philineB/Projects/XAI_for_ClimateChange/'
-dirquantus: /home/philineB/Projects/QuantusXClimate/
-dirdata: /home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/Data/
 
 datasets: ['ALL']
 datafiles: ['lens']

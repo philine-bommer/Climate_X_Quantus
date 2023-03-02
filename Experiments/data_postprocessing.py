@@ -51,7 +51,7 @@ if __name__=='__main__':
         print("Path does exist")
     else:
         print("Path does not exist:", sys.exc_info()[0])
-        os.mkdir(directoryeval)
+        os.mkdir(dircorrect)
     params['dirpaper'] = dircorrect
     xai_methods = settings['xai_methods']
 
@@ -61,7 +61,7 @@ if __name__=='__main__':
             timex = np.arange(config['start_year'], config['end_year'] + 1, 1)
             yearsall.append(timex)
 
-    dirhome = config['dirhome']
+    dirhome = data_settings['dirhome']
     try:
         dicts = np.load(dirhome + 'Random_Seed_List_nsamp_%s.npz' % config['params']['SAMPLEQ'])
         rand_seed = dicts['random_seed']

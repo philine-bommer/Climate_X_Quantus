@@ -42,12 +42,12 @@ config = yaml.load(open('%s/plot_config.yaml' %cfd), Loader=yaml.FullLoader)
 # Set paths.
 dirdata = settings['diroutput']
 
-dirout = data_settings['dirhome'] + 'Evaluation/'
+dirout = data_settings['dirhome'] + 'Data/Quantus/'+'Comprehensive/'
 if not os.path.isdir(dirout):
     print("Results path does not exist")
     os.mkdir(dirout)
 
-directoryfigure = config['dirpaper'] + 'Figures/' + 'Quantus/'
+directoryfigure = data_settings['dirhome'] + 'Figures/'
 if not os.path.isdir(directoryfigure):
     print("Figure path does not exist")
     os.mkdir(directoryfigure)
@@ -149,7 +149,11 @@ arguments = {'model': model,
 
 
 # Plotting configs.
-spyfig ='analysis_networks_spyder_plot_xai_%s_%s.pdf' %(len(xai_methods),config['net'])
+if config['base']:
+    spyfig = 'analysis_networks_spyder_plot_xai_%s_%s_scores.pdf' % (len(xai_methods), config['net'])
+else:
+    spyfig ='analysis_networks_spyder_plot_xai_%s_%s_ranks.pdf' %(len(xai_methods),config['net'])
+
 colours_order = ["#008080",
                  "#FFA500",
                  '#329932',

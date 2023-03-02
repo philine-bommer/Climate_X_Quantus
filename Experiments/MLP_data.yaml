@@ -1,0 +1,41 @@
+aHC: 0
+bs: 32
+data_name: Preprocessed_data_MLP_CESM1_obs_20CRv3.npz
+datafiles:
+- lens
+dataset_obs: 20CRv3
+datasets:
+- r'ALL'
+
+dirhome: /path/Climate_x_Quantus/
+diroutput: /path/Climate_x_Quantus/Data/Training/
+
+end_year: 2080
+exp: 0
+obs_year: 2015
+params:
+  batch_size: 32
+  chclass: 3
+  classChunk: 10
+  interpret: training
+  land_only: false
+  net: MLP
+  ocean_only: false
+  rm_annual_mean: false
+  rm_merid_mean: false
+random_network_seed: false
+reg_name: Globe
+rss: 34515
+sdf: 0.8
+season:
+- annual
+sis: 0
+start_year: 1920
+train:
+  annType: class
+  avgHalfChunk: 0
+  classChunkHalf: 5
+  debug: true
+  expList:
+  - (0)
+variq: T2M

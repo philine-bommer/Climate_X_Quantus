@@ -24,10 +24,6 @@ params:
     addType: ['NG','FG']
     addxai: ['NoiseGrad','FusionGrad']
 
-directory: /home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/
-dirpaper:  /home/philineB/Projects/XAI_for_ClimateChange/Paper/
-dirquantus: /home/philineB/Projects/QuantusXClimate/
-dirhome: '/home/philineB/Projects/XAI_for_ClimateChange/'
 
 ch_yrs: [2068]
 

@@ -50,13 +50,14 @@ plt.rc('font', **{'family': 'sans-serif', 'sans-serif': ['Avant Garde']})
 
 
 # Check out and in paths or create.
-dirhome = settings['dirhome']
+dirhome = data_settings['dirhome']
 directoryNet = dirhome + 'Network/'
 if not os.path.isdir(directoryNet):
     print("Network path does not exist")
     os.mkdir(directoryNet)
 
-directorydataoutput = settings['dirhome'] + 'Data/Training/' + data_settings['params']['net'] + '/'
+
+directorydataoutput = data_settings['dirhome'] + 'Data/Training/' + data_settings['params']['net'] + '/'
 if not os.path.isdir(directorydataoutput):
     print("outpath does not exist")
     os.mkdir(directorydataoutput)
@@ -75,7 +76,7 @@ if not os.path.isdir(directoryfigure):
 
 # Set general settings.
 params = settings['params']
-
+params['net'] = data_settings['net']
 # Set data fixed settings.
 sis = settings['sis']
 singlesimulation = settings['datafiles'][sis]

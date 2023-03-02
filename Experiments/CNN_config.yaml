@@ -1,6 +1,4 @@
 
-diroutput: '/home/philineB/Projects/XAI_for_ClimateChange/Baseline/InternalSignal/Data/'
-dirhome: '/home/philineB/Projects/XAI_for_ClimateChange/'
 
 datasets: [r'ALL']
 

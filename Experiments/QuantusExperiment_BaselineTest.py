@@ -32,9 +32,9 @@ config = yaml.load(open('%s/plot_config.yaml' %cfd), Loader=yaml.FullLoader)
 # Set paths.
 dirdata = settings['diroutput']
 
-dirout = config['dirquantus'] + 'Evaluation/'
+dirout = data_settings['dirhome'] + 'Data/Quantus/'+'Baseline/'
 if not os.path.isdir(dirout):
-    print("Figure path does not exist")
+    print("path does not exist")
     os.mkdir(dirout)
 
 
