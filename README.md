@@ -51,5 +51,5 @@ Further citations referring to used other used and referenced packages will be p
 ## Motivation
 </p>
 <p align="center">
-  <img width="600" src="https://raw.githubusercontent.com/annahedstroem/MetaQuantus/main/fig1-cmnist.png">
+  <img width="600" src="https://github.com/philine-bommer/Climate_X_Quantus/blob/main/FinalFirstGraph_v1.png">
 </p>
