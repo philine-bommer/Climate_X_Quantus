@@ -130,13 +130,13 @@ For the observational data please make sure to cite the following article by [Sl
 
 #### Raw data
 The workflow of the experiments includes 4 steps, starting with **Experiments/data_preparation.py**. This script runs the data preprocessing including
-creating annual averages, standardization, creating class labels and splitting the data for the network training and testing.
+creating annual averages, standardisation, creating class labels and splitting the data for the network training and testing.
 
 **Model Data:** For the script to run you have to download the 40-member Large Ensemble data using the RCP8.5 setting as detailed in the [data instructions](https://www.cesm.ucar.edu/community-projects/lens/instructions). 
 The corresponding nc.-files should be stored in the **'Climate_X_Quantus/Data/Raw/LENS/monthly/'** folder and each file should be renamed to  'CESM1A_All1-start-end.nc', with start marking the start year and 
 end marking the end year as stated in the original file names.
 
-**Observation Data:** You have also download the monthly 2m Air Temperture of the [20th century Reanalysis data (V3)](https://www.psl.noaa.gov/data/gridded/data.20thC_ReanV3.html) as Monthly values for 1836/01 to 2015/12. 
+**Observation Data:** You have also download the monthly 2m Air Temperature of the [20th century Reanalysis data (V3)](https://www.psl.noaa.gov/data/gridded/data.20thC_ReanV3.html) as Monthly values for 1836/01 to 2015/12. 
 The corresponding nc.-files should be stored in the **'Climate_X_Quantus/Data/Raw/20CRv3/monthly/'** folder and the file should be renamed to  'T2M_1836-2015.nc'.
 
 ### Data Preprocessing
@@ -150,9 +150,9 @@ with path - home path of cloned repo and network = (CNN, MLP) according to the e
 
 #### Downloading preprocessed data: 
 **Note that this step can be skipped to reproduce paper results.**
-The preprocessed data for the paper results will be made available on [zenodo]() within the next week and links will be included.
-The downloaded data called 'Preprocessed_datat_NET_CESM1_obs_20CRv3.npz' (with two files for NET=CNN/MLP) should be saved in **/Climate_X_Quantus/Data/Training/**.
-To skip the data preparation adjust the data_config.yaml as described above and set up the **'NET_data.yaml'** corresponding to the NET you want to run:
+The preprocessed data for the paper results is available on [zenodo](https://zenodo.org/record/7715398#.ZAsvSS8w1zU) with technical details and file documentation provided in the datasets **Readme.md** .
+The downloaded data called 'Preprocessed_datat_NET_CESM1_obs_20CRv3.npz' (with two files for NET=CNN/MLP) should unpacked and be saved in **/Climate_X_Quantus/Data/Training/**.
+To skip the data preparation adjust the data_config.yaml as described above and set up the **'NET_data.yaml'** with corresponding to the NET you want to run as follows:
 ```setup
 dirhome: /path/Climate_x_Quantus/
 diroutput: /path/Climate_x_Quantus/Data/Training/
