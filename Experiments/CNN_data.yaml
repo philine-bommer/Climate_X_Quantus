@@ -1,14 +1,15 @@
 aHC: 0
 bs: 32
-data_name: Preprocessed_data_CNN_CESM1_obs_20CRv3.npz
+data_name: 'Preprocessed_data_CNN_CESM1_obs_20CRv3.npz'
 datafiles:
 - lens
 dataset_obs: 20CRv3
 datasets:
 - r'ALL'
 
-dirhome: /path/Climate_x_Quantus/
-diroutput: /path/Climate_x_Quantus/Data/Training/
+dirhome: 'Climate_X_Quantus/'
+dir_raw: 'Climate_X_Quantus/Data/'
+diroutput: 'Climate_X_Quantus/Data/Training/'
 
 end_year: 2080
 exp: 0

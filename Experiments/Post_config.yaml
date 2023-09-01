@@ -1,43 +1,67 @@
+SAMPLEQ: 1
+datafiles:
+- lens
+dataset_obs: 20CRv3
+datasets:
+- ALL
+datatype: training
+diroutput: Climate_X_Quantus/Data/Quantus/CNN/0/
+end_year: 2080
+exptype: uncleaned
+lr: 0.01
+masked:
+- 58
+- 79
+- 115
+- 136
+mod: 0
+net: CNN
+nyears: 40
+outdata: Climate_X_Quantus/Data/Quantus/CNN/0/Postprocessed_data_ALL.npz
+outmod: Climate_X_Quantus/Data/Network/lens_CNN_0_T2M_1.tf
 params:
-  order: ['_gradient','inputtgradient','integratedgradients','lens']
+  SAMPLEQ: 100
+  XAI:
+    addType:
+    - NG
+    - FG
+    additional: 1
+    addxai:
+    - NoiseGrad
+    - FusionGrad
+    annType: class
+    biasBool: false
+    pval:
+    - 95
+    - 5
+    startYear: 1920
   bnd: 2
   bs: 32
-  SAMPLEQ: 100
   classChunk: 10
-  rss: 34515
+  order:
+  - _gradient
+  - inputtgradient
+  - integratedgradients
+  - lens
   plot:
     ens: 15
-  XAI:
-    pval: [95,5]
-    biasBool: False
-    annType: 'class'
-    startYear: 1920
-    additional: 1
-    addType: [ 'NG','FG' ]
-    addxai: [ 'NoiseGrad','FusionGrad' ]
-
-
-datasets: ['ALL']
-datafiles: ['lens']
-mod: 0
+  rss: 34515
+  save: 1
+reg_name: Globe
 save: 1
-
-season: ['annual']
-exptype: 'uncleaned'
-masked: [58, 79, 115, 136]
-
-nyears: 40
-
-lr: 0.01
-
-variq: 'T2M'
-SAMPLEQ: 1
-variables: ['T2M']
-seasons: ['annual']
-reg_name: 'Globe'
-dataset_obs: '20CRv3'
-
-datatype: 'training'
-
+season:
+- annual
+seasons:
+- annual
 start_year: 1920
-end_year: 2080
+variables:
+- T2M
+variq: T2M
+xai_methods: !!python/tuple
+- FusionGrad
+- dtype: flat
+  img_height: 95
+  img_width: 144
+  sgd: 0.5
+  std: 0.25
+- FG

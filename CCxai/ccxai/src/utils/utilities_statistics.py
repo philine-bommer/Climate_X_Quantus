@@ -175,3 +175,71 @@ def aggregation_mean_var(metrics: Dict,
     return means, var
 
 
+def bss_mean_var(metrics: Dict,
+                         methods: Dict,
+                         results: Dict,
+                         **params):
+    """
+    Calculates skill score satistics including mean BSS and SEM across samples in scores[metric][method]
+    :param metrics: dict of quantus metrics
+    :param methods: dict of explanation methods
+    :param scores:  dict of scores for each metric and each XAI method
+    :param params:  kwargs with number of XAI methods and names of the properties (network comparison see defaults)
+                or metrics that underlie normalization according to Eq.
+    :return:
+    """
+    # Set params.
+    num_xai = params.get('num_xai', 8)
+    string_list = params.get('min_norm', ["Randomisation", "Robustness"])
+    epsilon = np.power(10.,-4)
+
+    #Initialize result dicts.
+    means = {}
+    var = {}
+    # Aggregate mean and SEM.
+    for metric, metric_func in metrics.items():
+        means[metric] = {}
+        var[metric] = {}
+        unnormed_scores = []
+        for j, methoddict in enumerate(methods):
+            method = methoddict[2]
+            if "andom" in method:
+                idx_ref = j
+            if metric is "ROAD":
+                u_sc = []
+                for r in range(len(results[metric][method])):
+                    agg_score = area_score(results[metric][method][r])
+                    u_sc.append(agg_score)
+                unnormed_scores.append(np.array(u_sc))
+            elif type(results[metric][method]) is dict:
+                u_scores = []
+                for vals in results[metric][method].values():
+                    u_scores.append(vals)
+
+                unnormed_scores.append(np.array(u_scores).flatten())
+            else:
+                unnormed_scores.append(np.array(results[metric][method]).flatten())
+
+        unnormed_scores = np.array(unnormed_scores)
+        # unnormed_scores = np.abs(unnormed_scores)
+        base_score = unnormed_scores[idx_ref, :]
+        base_scores = np.repeat(base_score[np.newaxis, :], num_xai, axis=0)
+
+        if metric in string_list:
+            unnormed_scores = np.abs(unnormed_scores)
+            scores = np.ones(base_scores.shape) - (unnormed_scores/(base_scores + epsilon))
+        else:
+            scores = (unnormed_scores - base_scores)/(np.ones(base_scores.shape)-base_scores)#np.ones(base_scores.shape) - (base_scores/(unnormed_scores + epsilon))
+
+        for i, methoddict in enumerate(methods):
+            meth = methoddict[2]
+            if np.isinf(np.abs(np.mean(scores[i, :]))):
+                means[metric][meth] = np.mean(np.ma.masked_invalid(scores[i, :]))
+            else:
+                means[metric][meth] = np.nanmean(scores[i, :])
+            if np.isinf(np.std(scores[i, :])):
+                var[metric][meth] = np.std(np.ma.masked_invalid(scores[i, :]))/ np.sqrt(scores.shape[1])
+            else:
+                var[metric][meth] = np.nanstd(scores[i, :]) / np.sqrt(scores.shape[1])
+
+    return means, var

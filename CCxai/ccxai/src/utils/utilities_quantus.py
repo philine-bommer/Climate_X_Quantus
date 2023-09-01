@@ -1,19 +1,30 @@
+" Import python packages "
 from typing import Dict, Any
 import numpy as np
-import copy
-import pdb
 import pandas as pd
-from quantus.helpers.utils import *
-from quantus.helpers.normalise_func import *
-from quantus.helpers.normalise_func import normalise_by_negative
+
+"Import ML packages"
+import keras.backend as K
+import tensorflow.compat.v1.keras.backend as K
 import tensorflow as tf
-import keras
+# import keras.backend as K
+# import tensorflow.compat.v1.keras.backend as K
+# import tensorflow as tf
+# tf.compat.v1.disable_eager_execution()
+#
+"Import XAI packages"
 import innvestigate
 import innvestigate.utils as iutils
 
 import noisegrad_tf.srctf.noisegrad_tf as ng
 import noisegrad_tf.srctf.explainers_tf as xg
 import cphxai.src.utils.utilities_modelaware as xai_aw
+
+"Import XAI Evaluation packages"
+from quantus.helpers.utils import *
+from quantus.helpers.normalise_func import *
+
+
 
 
 def generate_tf_innvestigation(
@@ -98,7 +109,6 @@ def generate_tf_innvestigation(
         else:
 
             explanation = np.random.rand(*inputs.shape)
-
     else:
         if kwargs.get('num_classes',0)>0:
 
@@ -129,7 +139,8 @@ def generate_tf_innvestigation(
             explanation = np.array(analyzer.analyze(inputs))
 
     if np.isnan(explanation).sum()>0:
-        pdb.set_trace()
+        return print("Warning: non valid input")
+
 
     return explanation.reshape(og_shape)
 
@@ -162,6 +173,8 @@ def run_quantus(args: Dict,
     results = {metric: {} for metric, metric_func in metrics.items()}
     dirout = params['dirout']
     csv_file = params['csvfile']
+    npz_file = params['npzfile']
+    methods_name = params['meth_name']
     for metric, metric_func in metrics.items():
         if metric is "RandomLogit":
             num_cl = args["num_cl"]
@@ -230,6 +243,7 @@ def run_quantus(args: Dict,
             results[metric][method[2]] = scores
         df = pd.DataFrame(results)
         df.to_csv(dirout + csv_file, index=False, header=False)
+        np.savez(dirout + npz_file, values = df.values, xai = methods_name, properties = df.columns.values)
 
     return results
 

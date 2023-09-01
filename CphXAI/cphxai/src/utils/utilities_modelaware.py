@@ -4,7 +4,7 @@ using the innvestigate package.
 
 Notes
 -----
-    Author : Dilyara Bareeva
+    Author : Philine Bommer, Dilyara Bareeva
     Based on: https://github.com/albermax/innvestigate/blob/master/examples/notebooks/mnist_compare_methods.ipynb
     Date   : 23 November 2021
     Edit : 23 November 2021
@@ -19,7 +19,8 @@ import xarray as xr
 import numpy as np
 from typing import Tuple, Optional, Any
 " Import ML libraries "
-import tensorflow.keras as keras
+import tensorflow.compat.v1.keras as keras
+# from keras.models import Sequential
 import innvestigate
 from innvestigate.analyzer import LRP
 " Import modules "

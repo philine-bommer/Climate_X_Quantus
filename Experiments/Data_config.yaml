@@ -1,4 +1,4 @@
-dirhome: '/home/Climate_X_Quantus/'
+dirhome: 'Climate_X_Quantus/'
 
 
 datasets: [r'ALL']
@@ -35,7 +35,7 @@ params:
   classChunk: 10
   chclass: 3
   batch_size: 32
-  net: 'MLP'
+  net: 'CNN'
   interpret: 'training'
 
 random_network_seed: False

@@ -48,7 +48,7 @@ params:
   rm_merid_mean: False
   land_only: False
   ocean_only: False
-  iterations: [50]
+  iterations: [150]
   SAMPLEQ: 100
   classChunk: 10
   chclass: 3

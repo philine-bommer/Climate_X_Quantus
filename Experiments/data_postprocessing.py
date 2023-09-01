@@ -10,9 +10,9 @@ import sys
 import pdb
 
 import numpy as np
-
-from keras import optimizers, models, metrics
-import keras
+import tensorflow.compat.v1.keras.backend as K
+import tensorflow as tf
+import tensorflow.compat.v1.keras as keras
 
 
 
@@ -40,7 +40,7 @@ if __name__=='__main__':
     lr_here = settings['lr']
     params['dirdata'] = data_settings['dir_raw']
     nsamples = settings['SAMPLEQ']
-    params['seasons'] = settings['seasons']
+    params['seasons'] = settings['season']
     params['reg_name'] = settings['reg_name']
     params['dataset_obs'] = data_settings['dataset_obs']
     params['start_year'] = settings['start_year']
@@ -65,9 +65,9 @@ if __name__=='__main__':
     try:
         dicts = np.load(dirhome + 'Random_Seed_List_nsamp_%s.npz' % config['params']['SAMPLEQ'])
         rand_seed = dicts['random_seed']
-        filelist = ul.list_files_from_seeds(data_settings['dirnet'], rand_seed)
+        filelist = ul.list_files_from_seeds(settings['dirnet'], rand_seed)
     except:
-        filelist = ul.list_files(data_settings['dirnet'])
+        filelist = ul.list_files(settings['dirnet'])
 
 
     for ds in range(len(yearsall)):
@@ -77,7 +77,7 @@ if __name__=='__main__':
         sublisth5, sublistnpz = ul.list_multisubs(filelist, datasetsingle[ds], 'tf', str(params['rss']))
 
         mod = config['mod'] # leave at 0 in config if only 1 trained model.
-        directoryeval = config['dirhome'] + 'Data/' + 'Quantus/' + net + '/'
+        directoryeval = dirhome + 'Data/' + 'Quantus/' + net + '/'
 
         if os.path.isdir(directoryeval):
             print("Path does exist")
@@ -94,14 +94,14 @@ if __name__=='__main__':
             os.mkdir(directoryeval)
 
 
-        model = keras.models.load_model(data_settings['dirnet'] + sublisth5[mod])
+        model = keras.models.load_model(settings['dirnet'] + sublisth5[mod],compile = False)
 
         model.compile(optimizer=keras.optimizers.SGD(lr=lr_here, momentum=0.9, nesterov=True),
                       loss='binary_crossentropy',
                       metrics=[keras.metrics.categorical_accuracy], )
 
-        savemod = 'model_%s' %mod
-        model.save(directoryeval + savemod + '.tf')
+        # savemod = 'model_%s' %mod
+        # model.save(directoryeval + savemod + '.tf')
         prep_data = np.load(data_settings['diroutput'] + data_settings['data_name'])
         Xtrain = prep_data['Xtrain']
         Ytrain = prep_data['Ytrain']
@@ -139,9 +139,7 @@ if __name__=='__main__':
 
 
         # Load individual explanations.
-        directorydata = config['dirdata']
         xaidataname = settings['dataname']
-        params['dirdata'] = config['dir_raw']
         net_samps = str(settings['SAMPLEQ']) + '_'
         kwargs = {'settings':[net_samps]}
         if config['exptype'] == 'uncleaned':
@@ -198,7 +196,7 @@ if __name__=='__main__':
         settingsout['net'] = params['net']
         settingsout['outdata'] = directoryeval + savename1
         settingsout['diroutput'] = directoryeval
-        settingsout['outmod'] = directoryeval + savemod
+        settingsout['outmod'] = settings['dirnet'] + sublisth5[mod]#directoryeval + savemod
 
 
         with open('%s/Post_config.yaml' %cfd, 'w') as yaml_file:

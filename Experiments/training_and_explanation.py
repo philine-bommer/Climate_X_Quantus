@@ -8,13 +8,27 @@ Date      : 30 September 2020
 
 ### Import packages
 " Import python packages "
+# import os
+# import sys
+# import copy
+# import matplotlib.pyplot as plt
+# import numpy as np
+# import keras.backend as K
+# from keras import optimizers
+# import tensorflow as tf
+# import pandas as pd
+# import scipy.stats as stats
+# import warnings
+# import yaml
+
 import os
 import sys
 import copy
 import matplotlib.pyplot as plt
 import numpy as np
-import keras.backend as K
+import tensorflow.compat.v1.keras.backend as K
 import tensorflow as tf
+import tensorflow.compat.v1.keras as keras
 import pandas as pd
 import scipy.stats as stats
 import warnings
@@ -22,11 +36,11 @@ import pdb
 import yaml
 
 
+
 " Import modules with utilities "
 import cphxai.src.utils.utilities_network as net
 import cphxai.src.utils.utilities_calc as uc
 import cphxai.src.utils.utilities_modelaware as xai_aw
-
 
 ###############################################################################
 ###############################################################################
@@ -51,7 +65,7 @@ plt.rc('font', **{'family': 'sans-serif', 'sans-serif': ['Avant Garde']})
 
 # Check out and in paths or create.
 dirhome = data_settings['dirhome']
-directoryNet = dirhome + 'Network/'
+directoryNet = dirhome + 'Data/Network/'
 if not os.path.isdir(directoryNet):
     print("Network path does not exist")
     os.mkdir(directoryNet)
@@ -76,7 +90,7 @@ if not os.path.isdir(directoryfigure):
 
 # Set general settings.
 params = settings['params']
-params['net'] = data_settings['net']
+params['net'] = data_settings['params']['net']
 # Set data fixed settings.
 sis = settings['sis']
 singlesimulation = settings['datafiles'][sis]
@@ -96,7 +110,7 @@ params['plot'] = settings['plot_in_train']
 annType = settings['train']['annType']
 params['penalty'] = settings['train']['ridge_penalty']
 params['actFun'] = settings['train']['actFun']
-params['opt'] = tf.keras.optimizers.SGD(lr=lr,momentum=settings['train']['momentum'],
+params['opt'] = keras.optimizers.SGD(lr=lr,momentum=settings['train']['momentum'],
                                         nesterov=settings['train']['nesterov'])
 
 # Load or create list of random network seeds to ensure reproducability.
@@ -235,7 +249,9 @@ for isample in range(SAMPLEQ):
 
     savename = savename + regSave
     model.save(dirname + savename + '.tf')
+    model.save_weights(dirname + modelType + '_' + params['net'] + '_weights_' + str(SAMPLEQ) , overwrite=True)
     print('saving ' + savename)
+
 
     # ---------------------------------------------------------------------------
     # Analyse regression results.

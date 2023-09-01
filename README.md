@@ -9,9 +9,12 @@ This repository contains the code and supplementary packages for the paper **["F
 
 ![Python version](https://upload.wikimedia.org/wikipedia/commons/f/fc/Blue_Python_3.7_Shield_Badge.svg)  ![Tensorflow](https://img.shields.io/badge/Tensorflow%20-1.15-orange) ![INNvestigate](https://img.shields.io/badge/INNvestigate-1.0.9-orange)
 
-####This code is currently under active development and will be continuously updated including further tutorials and version which will provide fully running experiments and plots. Further requirements such as preprocessed download are currently necessary to reproduce paper results.
-**Please open issues to let the authors know about bugs and necessary fixes**
+####This code is currently under active developments and further requirements such as preprocessed download are currently necessary to reproduce paper results. The library code is only meant to provide reproducability for the publication (code will not be updated to TF2). For own research we refer user to tutorials (for TF 2 and Pytorch based code):
+* [Quantus X Climate Tutorial - CCAI](https://www.climatechange.ai/tutorials?search=id:quantus-x-climate) **(Tutorial for this publication)**
+* [Quantus Tutorials](https://github.com/understandable-machine-intelligence-lab/Quantus) (for pytorch version)
 
+*Please open issues to let the authors know about bugs and necessary fixes*
+ 
 ## Citation
 
 If you find this work or papers for included methods interesting or useful in your research, use the following Bibtex annotation to cite us:
@@ -90,16 +93,35 @@ You can download a local copy (and then, access the folder):
 git clone https://github.com/philine-bommer/Climate_X_Quantus.git
 cd Climate_X_Quantus
 ```
-Make sure to install the requirements.
+Create conda virtual env from sepc file. (Note that, innvestigate v.1.0.9 might has to be installed via pip)
 ```setup
-pip install -r requirements.txt
+conda create --name myenv --file spec-file.txt
 ```
+
+or create and install packages from spec-file. (Note that, innvestigate v.1.0.9 might has to be installed via pip)
+
+```setup
+conda create --name myenv python=3.7.11
+conda activate myenv
+conda install --name myenv --file spec-file.txt
+```
+
+[comment]: <> (Make sure to install the requirements in the conda virtual env.)
+
+[comment]: <> (```setup)
+
+[comment]: <> (while read requirement; do conda install --yes $requirement; done < requirements.txt)
+
+[comment]: <> (while read requirement; do conda install -c conda-forge --yes $requirement; done < requirements.txt)
+
+[comment]: <> (```)
 
 #### Package requirements
 
 The package requirements are as follows:
 ```
 python<=3.7.0
+innvestigate==1.0.9
 ```
 
 As well as the 3 included packages, each by changing to the according package folder (CCxai, CphXAI, NoiseGrad, QuantusClimate):
@@ -182,34 +204,50 @@ The trained network is saved und '/Climate_X_Quantus/Network/' and the explanati
 #### Postprocessing:
 In order to prepare the data for evaluation please run the 'data_postprocessing.py' also contained in 'Climate_X_Quantus/Experiments/'. No further adjustments of the 'Post_config.yaml' are needed.
 
-### Baseline Test
-The Baseline test **'QuantusExperiment_BaselineTest.py'** runs the experiment according to section 4.2 in **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)**. Here you can choose to create results for 
+### Explanation method comparison (Section 4b)
+The explanation method comparison experiment according to section 4b in **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)** can be performed by running **'QuantusExperiment_skill.py'**. Here you can choose to create results for 
 two representative metrics of either the robustness ("Robustness") property, faithfulness ("Faithfulness") or complexity with randomisation and localisation ("Complexity") by adjusting the **'plot_config.yaml'** as follows: 
 ```setup
 base: 1
 property: 'Robustness'
 ```
-with 'Robustness' as an example.
+with 'Robustness' as an example. 
+*Note that to perform the experiment for the MLP as in the paper please in Data_config.yaml set net = 'MLP' and run data_postprocessing.py first.*
 
-The resulting mean scores across 50 explanations and standard error of the mean (SEM) will be saved as individual csv.-files alongside the ranked scores. All results can be found in 
+The resulting mean skill scores across 50 explanations and standard error of the mean (SEM) will be saved as individual pkl.-files and npz.-files to enable plotting as provided in **Plot_Tables.ipynb**. All results can be found in 
 **'/Climate_X_Quantus/Data/Quantus/Baseline/'**
 
 ### Comprehensive Evaluation
-The Comprehensive Evaluation **'QuantusExperiment_Comprehensive.py'** runs the experiment according to section 4.3 in **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)**.
-You can decide to include the random baseline as comparitive value into the results and if enabled (see below base set to 1), the spyder plot will include the baseline value and conist of the 
-scores instead of the ranks as in Fig. 8 of **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)**.
-Settings are the following:
-```setup
-base: 1
-```
-with base disabled resulting in a a spyder plot of the ranked scores.
+The comparison across network architecture according to section 4c in **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)** can be performed by running **'QuantusExperiment_skill.py'** for the CNN.
+To perform the experiment for the CNN as in the paper please in Data_config.yaml set net = 'CNN' and run data_postprocessing.py first. Maintain the same settings in **'plot_config.yaml'**.
 
-The resulting mean scores across 50 explanations and standard error of the mean (SEM) will be saved as individual csv.-files alongside the ranked scores. All results can be found in
-**'/Climate_X_Quantus/Data/Quantus/Comprehensive/'**. The spyder plot in the chosen settings will be saved in '/Climate_X_Quantus/Figures/'
+The resulting mean skill scores across 50 explanations and standard error of the mean (SEM) will be saved as individual pkl.-files and npz.-files to enable plotting as provided in **Plot_Tables.ipynb**, which includes
+the plot script for Figure 8, 9, and 10a (the spyder plot for the MLP). All results can be found in 
+**'/Climate_X_Quantus/Data/Quantus/Baseline/'**
+
+### DeepShap
+The calculations have been seperated into a Colab python notebook due to version conflicts with innvestigate v.1.0.9. Thus, the evaluation protocol 
+for Deep Shap following evaluation procedure and skill score calculation described in **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)** can be found in **'Experiment_DeepShap.ipynb'**. 
+*We suggest running the notebook using Google Colab.*
+
 
 ## Additional Plots
 
-**Please note that we will soon update this repository to include more relevant plotting routines using the CCxai package.**
+### Figures 8 - 10a
+The plots for Figures 8 - 10a from Section 4 in **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)** can be reproduced by running the python notebook. 
+*We highly suggest running the notebooks via Google Colab.*
+
+Follow the instructions as details in the notebook. All figures will be saved in '/Climate_X_Quantus/Figures/'.
+
+### Figures B4 and B5
+The plot routine to plot the temporal average of the explanation maps across all XAI methods as displayed in Figure B4 and B5 in **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)** run **'Plot_temporalAverageMaps.py'**.
+The DeepShap explanations have to be generated for both networks by running **'Explanation_DeepShap.ipynb'**. Before running the plot routine, adjust the **'plot_config.yaml'** as follows:
+```setup
+base: net
+```
+with net = 'MLP' to plot the explanation of the MLP predictions or net = 'CNN' to plot the explanation amps of the CNN predictions. 
+
+
 
 ## Further references
 

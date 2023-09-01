@@ -31,9 +31,10 @@ only: 0
 base: 1
 real: 1
 
-property: "Robustness"
+property: "Complexity"
 include_titles: True
 include_legend: True
+dirquantus: "Climate_X_Quantus/Data/Quantus/"
 
 
 nyears: 24
@@ -59,7 +60,7 @@ datasets: ['ALL']
 ctoff: 0.05
 reg_name: 'Globe'
 dataset_obs: '20CRv3'
-dir_raw: '/home/philineB/Projects/Data/'
+dir_raw: 'Climate_X_Quantus/Data/'
 
 add_raw: 1
 HPs: 'noise'

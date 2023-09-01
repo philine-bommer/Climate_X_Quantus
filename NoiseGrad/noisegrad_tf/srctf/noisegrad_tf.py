@@ -1,8 +1,12 @@
 from typing import Callable
-import keras
-import keras.backend as K
+# import keras
+# import keras.backend as K
+import tensorflow.compat.v1.keras.backend as K
+import tensorflow as tf
+import tensorflow.compat.v1.keras as keras
 import numpy as np
 from tqdm import tqdm
+import copy
 import tensorflow as tf
 
 
@@ -33,9 +37,10 @@ class NoiseGrad:
 
         self.std = std
         self.mean = mean
-
-        self.model = keras.models.clone_model(model)
-        self.basemodel = model
+        self.basemodelweights = copy.deepcopy(model.get_weights())
+        self.model = model
+        # self.model = copy.deepcopy(model)
+        # self.basemodel = model
         self.n = n
         self.noise_type = noise_type
         self.verbose = verbose
@@ -79,9 +84,11 @@ class NoiseGrad:
             explanation = np.add(explanation, explanation_fn(
                 self.model, inputs, targets, **kwargs
             ))
-            del self.model
-            self.model = keras.models.clone_model(self.basemodel)
+            # del self.model
+            # self.model.set_weights(self.basemodel.get_weights())
+            self.model.set_weights(self.basemodelweights)
         return explanation/self.n
+
 
 
 class NoiseGradPlusPlus(NoiseGrad):
@@ -124,8 +131,10 @@ class NoiseGradPlusPlus(NoiseGrad):
 
         self.std = std
         self.mean = mean
-        self.model = keras.models.clone_model(model)
-        self.basemodel = model
+        self.basemodelweights = copy.deepcopy(model.get_weights())
+        self.model = model
+        # self.model = copy.deepcopy(model)
+        # self.basemodel = model
         self.n = n
         self.m = m
         self.sg_std = sg_std
@@ -142,9 +151,8 @@ class NoiseGradPlusPlus(NoiseGrad):
     def sample(self):
         # self.model.trainable_variables(self.weights)
         # If std is not zero, loop over each layer and add Gaussian noise.
-
         if not self.std == 0.0:
-
+            # with tf.stop_gradient():
             for layer in self.model.layers:
                 weight = []
                 if layer.get_weights():
@@ -169,12 +177,19 @@ class NoiseGradPlusPlus(NoiseGrad):
 
     def enhance_explanation(self, inputs, targets, explanation_fn: Callable, **kwargs):
         """Sample explanation."""
-
+        # if len(inputs.shape)>2:
+        #     explanation = np.zeros(
+        #         (self.n, self.m, kwargs.get("img_height", 224), kwargs.get("img_width", 224))
+        #     )
+        # else:
+        #     explanation = np.zeros(
+        #         (self.n, self.m, inputs.shape[0], inputs.shape[1])
+        #     )
         explanation = np.zeros(inputs.shape
         )
         explanation_m = np.zeros(inputs.shape
         )
-
+        # mdcp = keras.models.clone_model(self.model)
 
         for i in (tqdm(range(self.n)) if self.verbose else range(self.n)):
             self.sample()
@@ -191,7 +206,9 @@ class NoiseGradPlusPlus(NoiseGrad):
                 explanation_m = np.add(explanation_m, explanation_fn(
                     self.model, inputs_noisy, targets,  **kwargs
                 ))
-            del self.model
-            self.model = keras.models.clone_model(self.basemodel)
+
+            # self.model.set_weights(self.basemodel.get_weights())
+            self.model.set_weights(self.basemodelweights)
+
             explanation = np.add(explanation, explanation_m/self.m)
         return explanation/self.n

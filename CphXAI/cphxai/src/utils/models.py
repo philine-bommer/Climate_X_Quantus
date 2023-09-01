@@ -1,12 +1,15 @@
 from typing import Any, Tuple
 
 import numpy as np
-import keras.backend as K
+# import keras.backend as K
+import tensorflow.compat.v1.keras.backend as K
+import tensorflow as tf
+import tensorflow.compat.v1.keras as keras
 import keras.layers
 from keras.layers import Dense, Activation, Input, Conv2D, MaxPooling2D
 from keras import regularizers
-from keras import metrics
-from keras import optimizers
+# from keras import metrics
+# from keras import optimizers
 from keras.models import Sequential
 from keras.applications.vgg16 import VGG16
 from keras.applications.mobilenet_v2 import MobileNetV2

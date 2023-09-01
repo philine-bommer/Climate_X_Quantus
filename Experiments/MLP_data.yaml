@@ -8,6 +8,7 @@ datasets:
 - r'ALL'
 
 dirhome: /path/Climate_x_Quantus/
+dir_raw: /path/Climate_x_Quantus/Data/
 diroutput: /path/Climate_x_Quantus/Data/Training/
 
 end_year: 2080

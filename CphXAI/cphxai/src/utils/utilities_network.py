@@ -2,24 +2,18 @@ from typing import Optional, Any, Union, Dict
 import time
 import matplotlib.pyplot as plt
 import numpy as np
-import keras.backend as K
-import tensorflow.keras as keras
-import tensorflow as tf
+# import keras.backend as K
+# import tensorflow as tf
 import pandas as pd
 import random
-# import numpy as np
-# import keras.backend as K
-# from keras.layers import Dense, Activation
-# from keras import regularizers
-# from keras import metrics
-# from keras import optimizers
-# from keras.models import Sequential
-# import tensorflow.keras as keras
-# import tensorflow as tf
-# import random
-# import matplotlib.pyplot as plt
-# import time
-import pdb
+import tensorflow.compat.v1.keras.backend as K
+import tensorflow as tf
+import tensorflow.compat.v1.keras as keras
+from keras.layers import Dense, Activation
+from keras import regularizers
+from keras import metrics
+from keras import optimizers
+from keras.models import Sequential
 
 from ..utils.models import *
 from ..utils.utilities_calc import *
@@ -42,7 +36,7 @@ class TimeHistory(keras.callbacks.Callback):
 
 
 def trainNN(
-        model: tf.keras.Sequential,
+        model: keras.models.Sequential,
         Xtrain: np.ndarray,
         Ytrain: np.ndarray,
         **params):
@@ -74,7 +68,7 @@ def trainNN(
     return model, history
 
 def trainGeneral(
-        model: tf.keras.Sequential,
+        model: keras.models.Sequential,
         Xtrain: np.ndarray,
         Ytrain: np.ndarray,
         Xtest: np.ndarray,
