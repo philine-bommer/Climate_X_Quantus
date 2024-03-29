@@ -1,0 +1,12 @@
+LICENSE.exec
+README.md
+setup.py
+NoiseGrad_TF.egg-info/PKG-INFO
+NoiseGrad_TF.egg-info/SOURCES.txt
+NoiseGrad_TF.egg-info/dependency_links.txt
+NoiseGrad_TF.egg-info/top_level.txt
+noisegrad_tf/__init__.py
+noisegrad_tf/srctf/__init__.py
+noisegrad_tf/srctf/explainers_tf.py
+noisegrad_tf/srctf/noisegrad_tf.py
+noisegrad_tf/srctf/utils_tf.py

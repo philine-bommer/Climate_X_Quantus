@@ -35,7 +35,7 @@ params:
   classChunk: 10
   chclass: 3
   batch_size: 32
-  net: 'CNN'
+  net: 'MLP'
   interpret: 'training'
 
 random_network_seed: False

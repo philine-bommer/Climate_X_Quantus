@@ -51,7 +51,7 @@ params = settings['params']
 
 # Set paths for in and out-files.
 dirhome = settings['dirhome']
-avgHalfChunk = settings['aHC']
+avgHalfChunk = settings['train']['avgHalfChunk']
 
 directorydata = settings['dirhome'] + 'Data/Training/'
 if not os.path.isdir(directorydata):
@@ -83,7 +83,7 @@ for seas in range(len(seasons)):
     obsyearstart = year_obsall.min()
 
     segment_data_factor = settings['sdf']# Split the data: value of .8 will use 80% training, 20% testing; etc.
-    avgHalfChunk = settings['aHC']
+    avgHalfChunk = settings['train']['avgHalfChunk']
 
 
     # Parameters for label generation.

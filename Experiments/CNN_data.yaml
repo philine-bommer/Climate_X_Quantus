@@ -1,16 +1,13 @@
-aHC: 0
 bs: 32
-data_name: 'Preprocessed_data_CNN_CESM1_obs_20CRv3.npz'
+data_name: Preprocessed_data_CNN_CESM1_obs_20CRv3.npz
+data_raw: Climate_X_Quantus/Data/Raw/
 datafiles:
 - lens
 dataset_obs: 20CRv3
 datasets:
 - r'ALL'
-
-dirhome: 'Climate_X_Quantus/'
-dir_raw: 'Climate_X_Quantus/Data/'
-diroutput: 'Climate_X_Quantus/Data/Training/'
-
+dirhome: Climate_X_Quantus/
+diroutput: Climate_X_Quantus/Data/Training/
 end_year: 2080
 exp: 0
 obs_year: 2015
@@ -27,6 +24,7 @@ params:
 random_network_seed: false
 reg_name: Globe
 rss: 34515
+save: 0
 sdf: 0.8
 season:
 - annual

@@ -498,17 +498,25 @@ def yrs_inDataset(data, indx, yrs, modelsname):
     # vals = data.values
     lats = data['lat'].values
     lons = data['lon'].values
-    dats = data[:,indx,:,:]
+    dats = data.sel(years = indx)
+    if len(data.shape) < 5:
+        xArray = xr.DataArray(data=dats.values, dims=['models', 'time', 'lat', 'lon'],
+                                coords=dict(models=modelsname,
+                                            time=yrs[0], lon=("lon", lons),
+                                            lat=("lat", lats)),
+                                attrs=dict(description='Diff maps for random sampling of each year',
+                                        units='unitless', title='Diff maps'))
+    else:
+        xArray = xr.DataArray(data=dats.values, dims=['models', 'ensemble','time', 'lat', 'lon'],
+                                coords=dict(models=modelsname,
+                                            ensemble = data.ensemble.values[None],
+                                            time=yrs[0], lon=("lon", lons),
+                                            lat=("lat", lats)),
+                                attrs=dict(description='Diff maps for random sampling of each year',
+                                        units='unitless', title='Diff maps'))
 
 
-    catArray = xr.DataArray(data=dats, dims=['models', 'time', 'lat', 'lon'],
-                            coords=dict(models=modelsname,
-                                        time=yrs, lon=("lon", lons),
-                                        lat=("lat", lats)),
-                            attrs=dict(description='Diff maps for random sampling of each year',
-                                       units='unitless', title='Diff maps'))
-
-    return catArray
+    return xArray
 
 
 

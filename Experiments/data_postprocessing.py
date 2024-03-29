@@ -33,12 +33,13 @@ if __name__=='__main__':
     net = data_settings['params']['net']
 
     params = config['params']
+    params['interpret'] = data_settings['params']['interpret']
     params['net'] = net
     directorydataoutput = settings['diroutput']
     datasetsingle = config['datafiles']
     seasons = config['season']
     lr_here = settings['lr']
-    params['dirdata'] = data_settings['dir_raw']
+    params['dirdata'] = data_settings['data_raw']
     nsamples = settings['SAMPLEQ']
     params['seasons'] = settings['season']
     params['reg_name'] = settings['reg_name']
@@ -74,7 +75,7 @@ if __name__=='__main__':
 
         params['yearsall'] = yearsall[ds]
 
-        sublisth5, sublistnpz = ul.list_multisubs(filelist, datasetsingle[ds], 'tf', str(params['rss']))
+        sublisth5, sublistnpz = ul.list_multisubs(filelist, datasetsingle[ds] + '_' + net, 'tf', str(params['rss']))
 
         mod = config['mod'] # leave at 0 in config if only 1 trained model.
         directoryeval = dirhome + 'Data/' + 'Quantus/' + net + '/'
@@ -114,38 +115,70 @@ if __name__=='__main__':
         decadeChunks = prep_data['decadeChunks']
         testensnum  = prep_data['testIndices']
         trainensnum = prep_data['trainIndices']
+        XobsS = prep_data['XobsS']
+        yearsObs = prep_data['yearsObs']
+        Xstdobs = prep_data['Xstdobs']
+        Xmeanobs = prep_data['Xmeanobs']
+        lons_obs = prep_data['lons_obs']
+        lats_obs = prep_data['lats_obs']
+        obsyearstart = prep_data['obsyearstart']
 
 
+        if params['interpret'] == 'training':
+            XtrainS, XtestS, stdVals = uc.standardize_data(Xtrain, Xtest)
 
+            # Reshape Data.
+            inpts = np.append(XtrainS, XtestS, axis=0) # Inputs
+            indcs = np.append(trainensnum, testensnum, axis=0) # Ensemble indicies for training and testing data.
+            otpts = np.append(YtrainClassMulti, YtestClassMulti, axis=0) #Prediction targets (class vector with probabilities)
+            outs = np.append(Ytrain, Ytest, axis=0) #Years of the input maps (Regression targets)
 
-        XtrainS, XtestS, stdVals = uc.standardize_data(Xtrain, Xtest)
+            # Identify correct predictions.
+            params['yall'] = params['yearsall']
+            crrctYrs = uc.idf_corrct_prdctn(outs, inpts, model, **params)
 
-        # Reshape Data.
-        inpts = np.append(XtrainS, XtestS, axis=0) # Inputs
-        indcs = np.append(trainensnum, testensnum, axis=0) # Ensemble indicies for training and testing data.
-        otpts = np.append(YtrainClassMulti, YtestClassMulti, axis=0) #Prediction targets (class vector with probabilities)
-        outs = np.append(Ytrain, Ytest, axis=0) #Years of the input maps (Regression targets)
+            # Save correct prediction markers (years per ensemble memeber)
+            params['filename'] = 'Correct_Ensembles_network%s_%s_%s' %(mod,config['datatype'],config['datasets'][0])
+            params['saveens'] = directoryeval
+            enssort, ensnums, ensYrs = uc.sort_per_ens(crrctYrs, indcs, outs, **params)
+     
+        else:
 
-        # Identify correct predictions.
-        params['yall'] = params['yearsall']
-        crrctYrs = uc.idf_corrct_prdctn(outs, inpts, model, **params)
+            # Reshape Data.
+            inpts = XobsS # Inputs
+            indcs = np.append(trainensnum, testensnum, axis=0) # Ensemble indicies for training and testing data.
+            otpts, decadeChunks = uc.convert_fuzzyDecade(
+                                    yearsObs, params['yearsall'].min(),
+                                    params['classChunk'], params['yearsall']) #Prediction targets (class vector with probabilities)
+            outs = yearsObs #Years of the input maps (Regression targets)
 
-        # Save correct prediction markers (years per ensemble memeber)
-        params['filename'] = 'Correct_Ensembles_network%s_%s_%s' %(mod,config['datatype'],config['datasets'][0])
-        params['saveens'] = directoryeval
-        enssort, ensnums, ensYrs = uc.sort_per_ens(crrctYrs, indcs, outs, **params)
+            # # Identify correct predictions.
+            params['yall'] = params['yearsall']
+            # crrctYrs = uc.idf_corrct_prdctn(outs, inpts, model, **params)
 
+            # # Save correct prediction markers (years per ensemble memeber)
+            # params['filename'] = 'Correct_Ensembles_network%s_%s_%s' %(mod,config['datatype'],config['datasets'][0])
+            # params['saveens'] = directoryeval
+            # enssort, ensnums, ensYrs = uc.sort_per_ens(crrctYrs, indcs, outs, **params)
 
-
-
+        
         # Load individual explanations.
-        xaidataname = settings['dataname']
         net_samps = str(settings['SAMPLEQ']) + '_'
         kwargs = {'settings':[net_samps]}
+        if settings['params']['interpret'] == 'both':
+            if params['interpret'] == 'training':
+                xaidataname = [settings['dataname'][0],settings['dataname'][1]]
+            else:
+                xaidataname = [settings['dataname'][2],settings['dataname'][3]]
+        else:
+            xaidataname = settings['dataname']
+
         if config['exptype'] == 'uncleaned':
             filelist = ul.list_subs(directorydataoutput, xaidataname[1],**kwargs)
         else:
             filelist = ul.list_subs(directorydataoutput, xaidataname[0],**kwargs)
+            filelist2 = ul.list_subs(directorydataoutput, xaidataname[1],**kwargs)
+
         directories_data = []
         for i in range(len(filelist)):
             directories_data.append(directorydataoutput)
@@ -156,22 +189,48 @@ if __name__=='__main__':
             method_names.append(methods[2])
             methods_name.append(methods[2])
 
-        method_names[0] = 'Gradient_'
+        method_names[0] = 'Gradient'
         params['order'] = method_names
 
         filesort = ul.sortfilelist(filelist, **params)
         params['ens'] = mod
         dts = ul.data_concat_ens(filesort, directories_data, 'model', **params)
         explanations = dts.values
+        
         if config['exptype'] == 'uncleaned':
-            explanations = explanations.reshape(dts.shape[0],dts.shape[1]*dts.shape[2],dts.shape[3],dts.shape[4])
+            if params['interpret'] == 'training':
+                explanations = explanations.reshape(dts.shape[0],dts.shape[1]*dts.shape[2],dts.shape[3],dts.shape[4])
+            else:
+                explanations = explanations.reshape(dts.shape[0],dts.shape[1],dts.shape[2]*dts.shape[3])
+                explanations = explanations[:,:,None,:]
+
         else:
-            explanations = explanations.reshape(dts.shape[0],dts.shape[1],dts.shape[2]*dts.shape[3])
+            if params['interpret'] == 'training':
+                explanations = explanations.reshape(dts.shape[0],dts.shape[1]*dts.shape[2],dts.shape[3],dts.shape[4])
+            else:
+                explanations = explanations.reshape(dts.shape[0],dts.shape[1],dts.shape[2]*dts.shape[3])
+                explanations = explanations[:,:,None,:]
 
         # Sort out incorrect predictions.
-        inpts, otpts, explanations = uc.select_batch(inpts, otpts, explanations)
+        if config['exptype'] == 'cleaned':
+            # ipts, otp, exp = uc.select_batch(inpts, otpts, explanations, **params)
+            # if exp.size == 0 or exp[-1].sum() == np.nan:
+            #     del ipts, otp, exp
+            #     filesort2 = ul.sortfilelist(filelist2, **params)
+            #     dts2 = ul.data_concat_ens(filesort2, directories_data, 'model', **params)
+            #     explanations = dts2.values
+            #     if params['interpret'] == 'training':
+            #         explanations = explanations.reshape(dts.shape[0],dts.shape[1]*dts.shape[2],dts.shape[3],dts.shape[4])
+            #     else:
+            #         explanations = explanations.reshape(dts.shape[0],dts.shape[1],dts.shape[2]*dts.shape[3])
+            #         explanations = explanations[:,:,None,:]
+            #     inpts, otpts, explanations = uc.select_batch_from_list(inpts, otpts, explanations, enssort, dts2.values)
+            # else:
+            #     inpts, otpts, explanations = uc.select_batch(inpts, otpts, explanations, **params)
+            inpts, otpts, explanations = uc.select_batch(inpts, otpts, explanations, **params)
 
-        savename1 = 'Postprocessed_data_%s.npz' %(config['datasets'][0])
+
+        savename1 = 'Postprocessed_data_%s_%s.npz' %(config['datasets'][0],config['exptype'])
         np.savez(directoryeval + savename1, Input=inpts, Labels = otpts, Batchsize = 32,  wh = [lat, lon],
                  NetworkParams ={'lr':lr_here,'momentum':0.9, 'nesterov':True, 'loss':'binary_crossentropy',
                                  'metrics': 'tf.keras.metrics.categorical_accuracy', 'optimizer': 'SGD'})
@@ -182,11 +241,11 @@ if __name__=='__main__':
         maskNan[idx[0]:idx[1], idx[2]:idx[3]] = np.nan
         print('<<<< Created mask at latitude %s - %s, longitude %s - %s  >>>>' % (lat[idx[0]],lat[idx[1]], lon[idx[2]], lon[idx[3]]))
 
-
+        
         dts = dts.assign_coords({'model': methods_name})
 
         for n, models in enumerate(dts.model.values):
-            savename = 'Explanations_%s_%s' % (config['datasets'][0],models)
+            savename = 'Explanations_%s_%s_%s' % (config['datasets'][0],models,config['exptype'])
             np.savez(directoryeval + savename + '.npz', Explanation =explanations[n,:,:,:],
                     MaskNorthAtlantik= mask, maskNan= maskNan)
 

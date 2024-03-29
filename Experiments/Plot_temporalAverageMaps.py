@@ -13,6 +13,7 @@ import xarray as xr
 import yaml
 import os
 import sys
+import pdb
 
 '''Self-written Packages'''
 import cphxai.src.utils.utilities_calc as uc
@@ -29,8 +30,9 @@ import ccxai.src.utils.utils_preprocess as up
 cfd = os.path.dirname(os.path.abspath(__file__))
 config = yaml.load(open('%s/plot_config.yaml' %cfd), Loader=yaml.FullLoader)
 data_settings = yaml.load(open('%s/Data_config.yaml' %cfd), Loader=yaml.FullLoader)
-settings = yaml.load(open('%s/%s_results.yaml' %(cfd,config['net'])), Loader=yaml.FullLoader)
-dirdata = settings['diroutput']
+settings = yaml.load(open('%s/%s_results.yaml' %(cfd,data_settings['params']['net'])), Loader=yaml.FullLoader)
+other_dt = config['other_dt']
+dirdata = settings['diroutput'] + other_dt
 num_y = config['nyears']
 n_smpl = settings['params']['SAMPLEQ']
 datasetsingle = settings['datafiles']
@@ -39,7 +41,8 @@ xai_methods = settings['xai_methods']
 years = np.arange(config['start_year'], config['end_year'] + 1, 1)
 init = (len(years)//num_y)
 
-
+config['params']['net'] = data_settings['params']['net']
+config['net'] = data_settings['params']['net']
 confp = settings
 dirm = confp['dirnet']
 seasons = confp['season']
@@ -75,60 +78,64 @@ for methods in xai_methods:
     methods_name.append(methods[2])
 
 
-if params['XAI']['additional']:
-
-    for i in range(len(params['XAI']['addxai'])):
-        method_names.append(params['XAI']['addType'][i])
-        methods_name.append(params['XAI']['addxai'][i])
-
 
 '''Find correct and wrong predictions'''
 mod = 0
-directoryM = config['dirquantus'] + 'MLP/' + str(mod) +'/'
-directoryC = config['dirquantus'] + 'CNN/' + str(mod) +'/'
-directoryensM = directoryM + str(config['ch_yrs'][0]) + '/'
-directoryensC = directoryC + str(config['ch_yrs'][0]) + '/'
-filename = 'Correct_Ensembles_network%s_%s_%s.npz' %(mod,data_settings['params']['interpret'],config['datasets'][0])
-ensMLP = np.load(directoryensM + filename)
-ensCNN = np.load(directoryensC + filename)
-params['pred'] = config['net']
-params['ch_year'] = config['ch_yrs'][0]
-params['net'] = config['net']
-ensss = {'MLP': ensMLP['indxEns'],'CNN': ensCNN['indxEns']}
-params['ens'] = int(ensss[params['net']][0])
+if 'mean' in params['plot']['ens']: 
+    params['ens'] = params['plot']['ens']
+else:
+    directoryM = config['dirquantus'] + 'MLP/' + other_dt + str(mod) +'/'
+    directoryC = config['dirquantus'] + 'CNN/' + other_dt + str(mod) +'/'
+    directoryensM = directoryM + str(config['ch_yrs'][0]) + '/'
+    directoryensC = directoryC + str(config['ch_yrs'][0]) + '/'
+    filename = 'Correct_Ensembles_network%s_%s_%s.npz' %(mod,data_settings['params']['interpret'],config['datasets'][0])
+    ensMLP = np.load(directoryensM + filename)
+    ensCNN = np.load(directoryensC + filename)
+    params['pred'] = data_settings['params']['net']
+    params['ch_year'] = config['ch_yrs'][0]
+    params['net'] = data_settings['params']['net']
+    ensss = {'MLP': ensMLP['indxEns'],'CNN': ensCNN['indxEns']}
+    params['ens'] = int(ensss[params['net']][0])
 
 
 xaidataname = settings['dataname']
 params['plot']['dir'] = directoryfigure
-params['dirdata'] = settings['diroutput']
+params['dirdata'] = settings['diroutput'] + other_dt
 if config['datatype'] == 'uncleaned':
     filelist = ul.list_subs(dirdata, xaidataname[1])
-    namesfig = config['fname'] % (config['net'], xaidataname[1], len(config['ch_yrs']),len(method_names))
+    namesfig = config['fname'] % (params['net'], xaidataname[1], len(config['ch_yrs']),len(method_names))
 else:
     filelist = ul.list_subs(dirdata, xaidataname[0])
-    namesfig = config['fname'] % (config['net'], xaidataname[0], len(config['ch_yrs']),len(method_names))
+    namesfig = config['fname'] % (params['net'], xaidataname[0], len(config['ch_yrs']),len(method_names))
     namesfig = namesfig + '_ens_%s' %(params['ens'])
 directories_data = []
 for i in range(len(filelist)):
     directories_data.append(dirdata)
 
 params['order'] = method_names
-
 filesort = ul.sortfilelist(filelist, ** params)
 
 dts = ul.data_concatenate(filesort, directories_data, 'model', **params)
 
-shap_exp=np.load(settings['diroutput'] + 'DeepShap_UAI_YearlyMaps_1_20ens_T2M_training_ALL_annual.npz')
-shap = shap_exp['values'][:,:,params['ens'],:,:,:]
+shap_exp=np.load(settings['diroutput'] + other_dt + 'DeepShap_UAI_YearlyMaps_1_20ens_T2M_training_ALL_annual.npz')
+if 'mean' in params['plot']['ens']: 
+    shap = np.nanmean(shap_exp['values'],axis = 2)
+else:
+    shap = shap_exp['values'][:,:,params['ens'],:,:,:]
 shapx = dts[0,:,:,:,:]
 shapx.values = shap[0,...]
 dts = xr.concat((dts,shapx.expand_dims({"model":1})),dim = "model")
 method_names.append('DeepShap')
 methods_name.append('DeepShap')
 
+params_raw = params
+params_raw['dirdata'] = data_settings['dirhome'] + 'Data/' + 'Raw/' 
 if config['add_raw']:
-    raw_data = ul.raw_data(config['variq'], **params)
-    raw_data = raw_data[{'ensembles':params['ens']}]
+    raw_data = ul.raw_data(config['variq'], **params_raw)
+    if 'mean' in params['plot']['ens']: 
+        raw_data = raw_data.mean(dim= 'ensembles', skipna=True)
+    else:
+        raw_data = raw_data[{'ensembles':params['ens']}]
 
 years = np.arange(config['start_year'], config['end_year'] + 1, 1)
 init = (len(years)//num_y)
@@ -141,7 +148,7 @@ params['dirdata'] = config['dir_raw']
 
 params['plot']['cmap'] =mpl.cm.get_cmap('coolwarm')
 params['nyears'] = num_y
-# methods_name = methods_name[:len(dts.model.values)]
+
 if 'MLP' in config['net']:
     method_names = ['Gradient', 'Smoothgrad', 'InputGradients', 'IntGrad', 'LRPz', 'LRPab', 'NG', 'FG', 'DeepShap']
     methods_name = ['Gradient', 'Smoothgrad', 'InputGradients', 'IntGrad', 'LRPz', 'LRPab', 'NoiseGrad', 'FusionGrad', 'DeepShap']
@@ -172,6 +179,7 @@ params['add_raw'] = 1
 plottypes = params['plot']['types']
 params['plot']['types'] = 'continuous'
 params['plot']['LRPlim'] = 0.0
+params['plot']['fontsize'] = 18
 params['plot']['wd_ratio'] = np.asarray([4.5,4.5,1])
 params['plot']['cmaps'] = ['coolwarm','Reds','Reds','Reds',]
 params['plot']['cmaps'] = ['coolwarm','Reds','Reds','Reds',]
@@ -185,7 +193,6 @@ params['plot']['figname'] = namesfig + '_temporalAverage.pdf'
 params['nyears'] = 40
 uai = uss.timeperiod_calc(idvdtss, **params)
 
-
 if config['add_raw']:
     raw_data = uss.timeperiod_calc(raw_data.rename({'model': 'models'}), **params)
     raw_data = raw_data.assign_coords({'models':[ r'$\bar{T}$']})
@@ -195,12 +202,12 @@ if config['add_raw']:
 
 if config['net'] == 'MLP':
 
-    plotdata = plotdata.assign_coords({'models': [r'$\bar{T}$', 'gradient', 'SmoothGrad', 'input x \n gradients',
-                                                  'integrated \n gradients', 'LRPz', r'LRP$\alpha \beta$', 'NoiseGrad',
+    plotdata = plotdata.assign_coords({'models': [r'$\bar{T}$', 'gradient', 'SmoothGrad', 'input times \n gradients',
+                                                  'Integrated \n Gradients', 'LRPz', r'LRP$\alpha \beta$', 'NoiseGrad',
                                                   'FusionGrad', 'DeepSHAP']})
 
 else:
-    plotdata = plotdata.assign_coords({'models':[r'$\bar{T}$', 'gradient', 'SmoothGrad', 'input x \n gradients', 'integrated \n gradients', 'LRPz',r'LRP$\alpha \beta$','LRP \n composite', 'NoiseGrad', 'FusionGrad', 'DeepSHAP']})
+    plotdata = plotdata.assign_coords({'models':[r'$\bar{T}$', 'gradient', 'SmoothGrad', 'input times \n gradients', 'Integrated \n Gradients', 'LRPz',r'LRP$\alpha \beta$','LRP \n composite', 'NoiseGrad', 'FusionGrad', 'DeepSHAP']})
 
 
 params['plot']['region'] = []

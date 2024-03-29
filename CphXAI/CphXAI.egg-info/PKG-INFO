@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: CphXAI
+Version: 0.1.1
+Summary: Package for the analysis of climate change problems using XAI
+Home-page: https://github.com/philine-bommer/philine-bommer
+Author: Philine Bommer, Zack Labe
+Author-email: philine.l.bommer@tu-berlin.de
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE.exec
+
+# CphXAI Package
+
+This package is based on Labe et. al. 2020... 

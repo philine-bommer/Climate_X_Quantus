@@ -1,4 +1,5 @@
 params:
+  interpret: 'training'
   isel: 1
   rss: 34515
   sdf: .8
@@ -7,12 +8,13 @@ params:
   bs: 32
   classChunk: 10
   plot:
-    ens: 15
+    ens: 'mean'
     types: 'continuous'
     labelsize: 16
     fontsize: 20
     isel: [3,4]
     vaxis: [0.92, 0.15, 0.01, 0.25]
+    region: []
   XAI:
     biasBool: False
     annType: 'class'
@@ -31,10 +33,11 @@ only: 0
 base: 1
 real: 1
 
-property: "Complexity"
+property: "Faithfulness"
 include_titles: True
 include_legend: True
-dirquantus: "Climate_X_Quantus/Data/Quantus/"
+dirquantus: "./Climate_X_Quantus/Data/Quantus/"
+other_dt: ''
 
 
 nyears: 24
@@ -51,7 +54,7 @@ start_year: 1920
 end_year: 2080
 
 UAIp_file: 'UAI'
-net: 'MLP'
+net: 'CNN'
 pred: 'wrong'
 datatype: 'cleaned'
 datasets: ['ALL']

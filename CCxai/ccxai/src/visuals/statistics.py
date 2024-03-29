@@ -193,11 +193,9 @@ def beginFinalPlot(YpredTrain, YpredTest, Ytrain, Ytest, testIndices, years, yea
                      bbox_to_anchor=(-0.01, 1), fancybox=True, ncol=1, frameon=False,
                      handlelength=1, handletextpad=0.5)
     savefigName = modelType + '_' + variq + '_scatterPred_' + savename
-    # plt.annotate(savename,(0,.98),xycoords='figure fraction',
-    #              fontsize=5,
-    #              color='gray')
+
     plt.savefig(
         directoryfigure + savefigName + '.png' ,
-        dpi=300)
+        dpi=600)
     print(np.round(np.corrcoef(yearsObs, YpredObs)[0, 1], 2))
     return

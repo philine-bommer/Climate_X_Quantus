@@ -91,7 +91,8 @@ def sortfilelist(filelist: str,
     for i in range(len(order)):
         dp = 0
         for j in range(len(filelist)):
-            if order[i] in filelist[j] and filelist[j] not in filesort:
+            orders = order[i] + '_'
+            if orders in filelist[j] and filelist[j] not in filesort:
                 if dp <1:
                     filesort.append(filelist[j])
                 dp += 1
@@ -115,7 +116,7 @@ def data_concatenate(filelist: Any,
             data = xr.open_dataarray(directory[i] + filelist[i])
             try:
                 if params['ens'] == 'mean':
-                    data = data.mean(dim= 'ensemble')  # .mean(dim = 'ensemble')
+                    data = data.mean(dim= 'ensemble', skipna=True)  # .mean(dim = 'ensemble')
                 else:
                     data = data[{'ensemble':params['ens']}]#.mean(dim = 'ensemble')
 
@@ -125,7 +126,7 @@ def data_concatenate(filelist: Any,
             dds = xr.open_dataarray(directory[i] + filelist[i])
             try:
                 if params['ens'] == 'mean':
-                    dds = dds.mean(dim= 'ensemble')  # .mean(dim = 'ensemble')
+                    dds = dds.mean(dim= 'ensemble', skipna=True)  # .mean(dim = 'ensemble')
                 else:
                     dds = dds[{'ensemble':params['ens']}]#.mean(dim = 'ensemble')
             except:

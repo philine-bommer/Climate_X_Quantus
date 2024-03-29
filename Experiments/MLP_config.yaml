@@ -63,7 +63,7 @@ params:
   lr: 0.01
   batch_size: 32
   net: 'MLP'
-  interpret: 'training'
+  interpret: 'both'
   train:
     epochs: 100
     nets: '2layer'

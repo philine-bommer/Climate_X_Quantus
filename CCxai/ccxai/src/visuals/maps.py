@@ -18,7 +18,7 @@ import numpy as np
 import cmocean
 import cartopy.crs as ccrs
 import xarray as xr
-import pdb
+import matplotlib as mpl
 
 from ..visuals.general import *
 
@@ -310,6 +310,11 @@ def plot_PaperMaps(
     cmaps = create_cmap(data, **params)
 
     ### Plot variable data for trends
+    # mpl.rcParamsDefault['text.usetex'] = True
+    # mpl.rcParamsDefault['text.latex.preamble'] = [r'\usepackage{amsmath}'] 
+    mpl.rcParamsDefault['font.weight'] = 'bold'
+    # mpl.rcParams.update(plt.rcParamsDefault)
+    # plt.rc('text', usetex=plt.rcParamsDefault['text.usetex'])
     plt.rc('text', usetex=True)
     plt.rc('font', **{'family': 'sans-serif', 'sans-serif': ['Avant Garde']})
     plt.rc('savefig', facecolor='white')
@@ -348,12 +353,8 @@ def plot_PaperMaps(
             else:
                 ax = axes[mod]
 
-            ax.coastlines(resolution='110m', color='dimgrey', linewidth=0.35)
+            ax.coastlines(resolution='110m', color='dimgrey', linewidth=0.4)
             ax.set_global()
-
-            if any(params['plot']['region']):
-                ax.set_extent(params['plot']['region'], crs=plt_kw['trafo'])
-                ax.gridlines()
 
             plt_kw['cmap'] = cmaps[mod]
             if mod == 0:
@@ -366,16 +367,28 @@ def plot_PaperMaps(
             vp = plot_on_axis(ax, dat.loc[yearperiod[yp]], types,**plt_kw)
 
             if mod == 0:
-            # if (c % len(xai_methods)) == 0:
-                ax.annotate(r'\textbf{%s}' % yearperiod[yp], xy=(0, 0), xytext=(0.5, 1.22),
+                # ax.annotate(r'$\mathbf{%s}$' % yearperiod[yp], xy=(0, 0), xytext=(0.5, 1.22),
+                #             textcoords='axes fraction', color='darkgrey', fontsize=fs,
+                #             rotation=0, ha='center', va='center')
+                ax.annotate(r'%s' % yearperiod[yp], xy=(0, 0), xytext=(0.5, 1.22),
                             textcoords='axes fraction', color='darkgrey', fontsize=fs,
                             rotation=0, ha='center', va='center')
-            # if (c % len(yearperiod)) == 0:
+
             if yp == 0:
-                ax.annotate(r'\textbf{%s}' % data.models.values[mod], xy=(0, 0), xytext=(-0.1, 0.5),
+                # ax.annotate(r'$\mathbf{%s}$' % data.models.values[mod], xy=(0, 0), xytext=(-0.1, 0.5),
+                #             textcoords='axes fraction', color='darkgrey', fontsize=fs,
+                #             rotation=90, ha='center', va='center')
+                ax.annotate(r'%s' % data.models.values[mod], xy=(0, 0), xytext=(-0.1, 0.5),
                             textcoords='axes fraction', color='darkgrey', fontsize=fs,
                             rotation=90, ha='center', va='center')
 
+            if any(params['plot']['region']):
+                ax.set_extent(params['plot']['region'], crs=plt_kw['trafo'])
+                ax.gridlines()
+
+            ax.coastlines(resolution='110m', color='dimgrey', linewidth=0.4)
+            ax.set_global()
+            
             c += 1
 
 

@@ -184,21 +184,9 @@ def convert_fuzzyDecade_toYear(label, startYear, classChunk, yearsall):
 
     print('SELECT END YEAR - HARD CODED IN FUNCTION')
     years = np.arange(startYear - classChunk * 2, yearsall.max() + classChunk * 2)
-    # years = np.arange(startYear - classChunk * 2, 2080 + classChunk * 2)
     chunks = years[::int(classChunk)] + classChunk / 2
 
     return np.sum(label * chunks, axis=1)
-
-
-# def invert_year_output(ypred, startYear, classChunk, yearsall, option4):
-#
-#
-#     if (option4):
-#         inverted_years = convert_fuzzyDecade_toYear(ypred, startYear, classChunk, yearsall)
-#     else:
-#         inverted_years = invert_year_outputChunk(ypred, startYear)
-#
-#     return inverted_years
 
 
 def invert_year_outputChunk(ypred, startYear, classChunkHalf):
@@ -269,44 +257,6 @@ def invert_year_output(ypred, startYear, classChunk, yearsall):
     return inverted_years
 
 
-# def invert_year_output(ypred, startYear, classChunk, option4):
-#     if (option4):
-#         inverted_years = convert_fuzzyDecade_toYear(ypred, startYear, classChunk)
-#     else:
-#         inverted_years = invert_year_outputChunk(ypred, startYear)
-#
-#     return inverted_years
-
-
-# def convert_fuzzyDecade_toYear(label, startYear, classChunk, yearsall, sis):
-#     years = np.arange(startYear - classChunk * 2, yearsall[sis].max() + classChunk * 2)
-#     chunks = years[::int(classChunk)] + classChunk / 2
-#
-#     return np.sum(label * chunks, axis=1)
-#
-#
-# def convert_fuzzyDecade(data, startYear, classChunk, yearsall, sis):
-#     years = np.arange(startYear - classChunk * 2, yearsall[sis].max() + classChunk * 2)
-#     chunks = years[::int(classChunk)] + classChunk / 2
-#
-#     labels = np.zeros((np.shape(data)[0], len(chunks)))
-#
-#     for iy, y in enumerate(data):
-#         norm = stats.uniform.pdf(years, loc=y - classChunk / 2., scale=classChunk)
-#
-#         vec = []
-#         for sy in years[::classChunk]:
-#             j = np.logical_and(years > sy, years < sy + classChunk)
-#             vec.append(np.sum(norm[j]))
-#         vec = np.asarray(vec)
-#         vec[vec < .0001] = 0.  # This should not matter
-#
-#         vec = vec / np.sum(vec)
-#
-#         labels[iy, :] = vec
-#     return labels, chunks
-
-
 def movingAverageInputMaps(data, avgHalfChunk):
     print(np.shape(data))
     dataAvg = np.zeros(data.shape)
@@ -326,7 +276,7 @@ def movingAverageInputMaps(data, avgHalfChunk):
 def idf_corrct_prdctn(yrs, ins, model, **params):
     '''
     Function:
-    constructing boolean array of correct predictions (pred year = (true year +-2 year) )
+    calculating prediction error
         yrs: true years
         prdctn: predicted years
         crrctYr: boolean array 1x#yrs
@@ -334,8 +284,7 @@ def idf_corrct_prdctn(yrs, ins, model, **params):
 
     err = yrs[:, 0] - invert_year_output(model.predict(ins),
                                               params['start_year'], params['classChunk'], params['yall'])
-    # yrsdiff = yrs - prdctn
-    # crrctYr = np.abs(yrsdiff) <= params['bnd']
+
     return err
 #
 def sort_per_ens(errs, indcs, yrs, **params):
@@ -432,33 +381,69 @@ def prdct_cmprsn(enstrue, **params):
 
 def select_batch(x: np.ndarray,
                  y: np.ndarray,
-                 explanation: np.ndarray):
+                 explanation: np.ndarray,
+                 **params):
     """"""
-    meanx = np.mean(explanation, axis =0)
+    if params['interpret'] == 'training':
+        meanx = np.mean(explanation, axis = 0)
+    else:
+        meanx = explanation
     nan_flt = np.isnan(meanx).sum(axis = 1).sum(axis = 1)
     indxs = np.where(nan_flt > 0)[0]
     x_out =np.delete(x,indxs, axis=0)
     y_out = np.delete(y, indxs, axis=0)
     exp_out = np.delete(explanation, indxs, axis =1)
 
-
+    if nan_flt.sum() == 0:
+        x_out =x
+        y_out = y
+        exp_out = explanation 
 
     return x_out, y_out, exp_out
-# def find_smpls_in_yr(masked, ** params):
-#     '''
-#     Function:
-#     finding yrs with certain #samples of correct prediction
-#         data: data to be sorted (#ens*#yrs x 1)
-#         indcs: ensemble members
-#         dtsrt: sorted data (#ens x #yrs x 1)
-#      '''
-#     ensnum = params['ensnum']
-#     if len(masked.shape) > 2:
-#         mdsnum = masked.sum(axis=0)
-#         return 0, mdsnum
-#     else:
-#         mdsnum = masked.sum(axis = 0)
-#         for i in range(mdsnum.shape[0]):
-#             if mdsnum[i] >= ensnum:
-#                 return i, masked[i,:]
+
+def select_batch_from_list(x: np.ndarray,
+                 y: np.ndarray,
+                 explanation: np.ndarray,
+                 enssort: dict,
+                 da: np.ndarray,) -> list:
+    """ Filtering correct explanations by using in dict 
+    of correct ensemble members per year
+
+    Args:
+        x (np.ndarray): array of inputs (#samples, lat, lon, 1)
+        y (np.ndarray): array of outputs (#samples, #categories)
+        explanation (np.ndarray): explanation methods (#XAI methods, #samples, lat, lon)
+        enssort (dict): keys = years, values = correct ensemble members
+        da (np.ndarray): explanation in shape (#XAI methods, #ensembles, #years, lat, lon)
+
+    Returns:
+        list: list containing arrays of cleaned inputs, outputs, explanations
+    """
+
+    exp = np.empty(da.shape)
+    exp[:] = np.nan
+
+    i = 0
+    for keys, values in enssort.items():
+        if not i:
+            strt = int(keys)
+        yrs = int(int(keys) - strt)
+        vals = np.sort(values, axis=None).astype(int)
+        exp[:,vals,yrs,...] = da[:,vals,yrs,...]
+        i += 1
+
+    exp = exp.reshape(explanation.shape)
+    meanx = exp.mean(axis = 0)
+    nan_flt = np.isnan(meanx).sum(axis = 1).sum(axis = 1)
+    indxs = np.where(nan_flt > 0)[0]
+    x_out =np.delete(x,indxs, axis=0)
+    y_out = np.delete(y, indxs, axis=0)
+    exp_out = np.delete(explanation, indxs, axis =1)
+
+    if nan_flt.sum() == 0:
+        x_out =x
+        y_out = y
+        exp_out = explanation 
+
+    return x_out, y_out, exp_out
 

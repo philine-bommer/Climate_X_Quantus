@@ -37,17 +37,26 @@ if not os.path.isdir(dirout):
     print("path does not exist")
     os.mkdir(dirout)
 
-
 # Set general settings.
 params = config['params']
 config['net'] = data_settings['params']['net']
 params['net'] = config['net']
+params['interpret'] = config['params']['interpret']
 numM = post_settings['mod']
 num_y = config['nyears']
 n_smpl = settings['params']['SAMPLEQ']
 datasetsingle = settings['datafiles']
 years = np.arange(config['start_year'], config['end_year'] + 1, 1)
 init = (len(years)//num_y)
+
+dirout = dirout + params['interpret'] + '/'
+if not os.path.isdir(dirout):
+    print("path does not exist")
+    os.mkdir(dirout)
+dirout = dirout + post_settings['exptype'] + '/' 
+if not os.path.isdir(dirout):
+    print("path does not exist")
+    os.mkdir(dirout)
 
 
 # Load model and data.
@@ -65,15 +74,24 @@ print(f"\n Model architecture: {model.summary()}\n")
 
 
 # Draw n random indices from batch.
-nr_samples_viz = 50
+nr_samples_viz = 50 # set to adjust number of explanation samples to use for evaluation.
 
-try:
-    dicts = np.load(config['dirquantus'] + 'Random_Seed_List_nsamp_%s.npz' % nr_samples_viz)
-    rand_seed = dicts['random_seed']
-except:
-    sample_indices_viz = np.random.choice(np.arange(0, batch_size - 1), size=nr_samples_viz)
-    svname = 'Random_Samples_List_nsamp_%s.npz' % nr_samples_viz
-    np.savez(config['dirquantus'] + svname, random_seed=sample_indices_viz)
+if params['interpret'] == 'training':
+    try:
+        dicts = np.load(config['dirquantus'] + 'Random_Seed_List_nsamp_%s_%s.npz' % (nr_samples_viz, post_settings['exptype']))
+        rand_seed = dicts['random_seed']
+    except:
+        sample_indices_viz = np.random.choice(np.arange(0, batch_size - 1), size=nr_samples_viz)
+        svname = 'Random_Samples_List_nsamp_%s_%s.npz' %(nr_samples_viz, post_settings['exptype'])
+        np.savez(config['dirquantus'] + svname, random_seed=sample_indices_viz)
+else:
+    try:
+        dicts = np.load(config['dirquantus'] + 'Random_Seed_obs_List_nsamp_%s_%s.npz' % (nr_samples_viz, post_settings['exptype']))
+        rand_seed = dicts['random_seed']
+    except:
+        sample_indices_viz = np.random.choice(np.arange(0, batch_size - 1), size=nr_samples_viz)
+        svname = 'Random_Samples_obs_List_nsamp_%s_%s.npz' %(nr_samples_viz, post_settings['exptype'])
+        np.savez(config['dirquantus'] + svname, random_seed=sample_indices_viz)
 
 x_batch = x_batch[sample_indices_viz]
 y_batch = y_batch[sample_indices_viz]
@@ -118,12 +136,12 @@ for n, method in enumerate(methods_name):
     if 'Random' in method:
         explanations[method] = np.random.rand(*x_batch.shape)
     else:
-        savename = 'Explanations_%s_%s' % (config['datasets'][0], method)
+        savename = 'Explanations_%s_%s_%s' % (config['datasets'][0], method, post_settings['exptype'])
         explanations_raw = np.load(post_settings['diroutput'] + savename + '.npz', allow_pickle=True)
         if n == 0:
             mask = explanations_raw['MaskNorthAtlantik']
 
-        explanations[method] = explanations_raw['Explanation'][sample_indices_viz]
+        explanations[method] = explanations_raw['Explanation'][sample_indices_viz].reshape(*x_batch.shape)
 
 s_batch = np.tile(mask, (all["Input"].shape[0], 1, 1))
 s_batch = np.expand_dims(s_batch, 1)
@@ -238,7 +256,7 @@ results = qtstf.run_quantus(arguments,explanations,metrics,xai_methods, **params
 dfs = pd.DataFrame.from_dict(results)
 dfs = dfs.reindex(methods_name)
 dfs.to_pickle(dirout + csv_files + '.pkl')
-np.savez(dirout + 'raw_results_%s_xai_%s_%s.npz'% (config['property'],len(xai_methods), config['net']), raw = dfs.values, xai = dfs.index.to_list(), properties = dfs.columns.values)
+np.savez(dirout + 'raw_results_%s_xai_%s_%s_%s.npz'% (config['property'],len(xai_methods), config['net'], post_settings['exptype']), raw = dfs.values, xai = dfs.index.to_list(), properties = dfs.columns.values)
 
 # Set aggregation params.
 params['num_xai'] = len(methods_name)
@@ -255,12 +273,12 @@ df = pd.DataFrame.from_dict(results_mean)
 df = df.abs()
 
 # Save SEM.
-df2.to_pickle(dirout + 'results_%s_SEM_scores_xai_%s_%s.pkl' % (config['property'],len(xai_methods), config['net']))
-np.savez(dirout + 'results_%s_SEM_scores_xai_%s_%s.npz' % (config['property'],len(xai_methods), config['net']), sem = df2.values, xai = methods_name, properties = df2.columns.values)
+df2.to_pickle(dirout + 'results_%s_SEM_scores_xai_%s_%s_%s.pkl' % (config['property'],len(xai_methods), config['net'], post_settings['exptype']))
+np.savez(dirout + 'results_%s_SEM_scores_xai_%s_%s_%s.npz' % (config['property'],len(xai_methods), config['net'], post_settings['exptype']), sem = df2.values, xai = methods_name, properties = df2.columns.values)
 
 # Save abs. normalized scores.
-df.to_pickle(dirout + 'results_%s_abs_agg_scores_xai_%s_%s.pkl' % (config['property'],len(xai_methods), config['net']))
-np.savez(dirout + 'results_%s_abs_agg_scores_xai_%s_%s.npz' % (config['property'],len(xai_methods), config['net']), mean = df.values, xai = methods_name, properties = df.columns.values)
+df.to_pickle(dirout + 'results_%s_abs_agg_scores_xai_%s_%s_%s.pkl' % (config['property'],len(xai_methods), config['net'], post_settings['exptype']))
+np.savez(dirout + 'results_%s_abs_agg_scores_xai_%s_%s_%s.npz' % (config['property'],len(xai_methods), config['net'], post_settings['exptype']), mean = df.values, xai = methods_name, properties = df.columns.values)
 
 # Save norm. ranks scores.
 # df_normalised_rank = qtstats.significance_ranking(df, df2)
@@ -275,18 +293,19 @@ bss = pd.DataFrame.from_dict(bss_mean)
 bss = bss.reindex(methods_name)
 bss2 = bss2.reindex(methods_name)
 
-pdb.set_trace()
+
 # Save SEM BSS.
-bss2.to_pickle(dirout + 'bss_%s_SEM_scores_xai_%s_%s.pkl' % (config['property'],len(xai_methods), config['net']))
-np.savez(dirout + 'bss_%s_SEM_scores_xai_%s_%s.npz'% (config['property'],len(xai_methods), config['net']), sem = bss2.values, xai = methods_name, properties = df2.columns.values)
+bss2.to_pickle(dirout + 'bss_%s_SEM_scores_xai_%s_%s_%s.pkl' % (config['property'],len(xai_methods), config['net'], post_settings['exptype']))
+np.savez(dirout + 'bss_%s_SEM_scores_xai_%s_%s_%s.npz'% (config['property'],len(xai_methods), config['net'], post_settings['exptype']), sem = bss2.values, xai = methods_name, properties = df2.columns.values)
 
 # Save mean BSS.
-bss.to_pickle(dirout + 'bss_%s_abs_agg_scores_xai_%s_%s.pkl' % (config['property'],len(xai_methods), config['net']))
-np.savez(dirout + 'bss_%s_abs_agg_scores_xai_%s_%s.npz' % (config['property'],len(xai_methods), config['net']), mean = bss.values, xai = methods_name, properties = df.columns.values)
+bss.to_pickle(dirout + 'bss_%s_abs_agg_scores_xai_%s_%s_%s.pkl' % (config['property'],len(xai_methods), config['net'], post_settings['exptype']))
+np.savez(dirout + 'bss_%s_abs_agg_scores_xai_%s_%s_%s.npz' % (config['property'],len(xai_methods), config['net'], post_settings['exptype']), mean = bss.values, xai = methods_name, properties = df.columns.values)
 
 
 # Log used data.
-np.savez(dirout + 'data_%s_%s.npz' % (config['property'],config['net']),x_batch =x_batch, y_batch= y_batch,
+np.savez(dirout + 'data_%s_%s_%s.npz' % (config['property'],config['net'], post_settings['exptype']),x_batch =x_batch, y_batch= y_batch,
          s_batch= s_batch, net = config['net'], y_out= all["Labels"][sample_indices_viz], n_smps=n_smps,
          n_sms=  config['n_sms'], n_iter=int(n_smps/ config['n_sms']),
-         num_cl= all["Labels"][sample_indices_viz].shape[0], reference = dfs.values[8])
+         num_cl= all["Labels"][sample_indices_viz].shape[0], reference = dfs.values[-1])
+

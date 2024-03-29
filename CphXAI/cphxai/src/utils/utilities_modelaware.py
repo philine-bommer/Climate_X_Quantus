@@ -138,8 +138,7 @@ def getMapPerMethod(model: keras.Sequential,
 
     ### Define prediction error
     yearsUnique = np.unique(Yyt)
-    percCutoff = 90
-    withinYearInc = params['XAI']['yrtol']
+    withinYearInc = params['XAI'].get('yrtol',2)
     errTolerance = withinYearInc
 
     if (annType == 'class'):
@@ -161,15 +160,19 @@ def getMapPerMethod(model: keras.Sequential,
             analyzer = innvestigate.create_analyzer(method[0], model_wo_softmax)
 
     maps = np.empty(np.shape(XXt))
+    summaryX = np.empty(np.shape(XXt))
     maps[:] = np.nan
+    summaryX[:] = np.nan
     # analyze each input via the analyzer
     for i in np.arange(0, np.shape(XXt)[0]):
 
         # ensure error is small, i.e. model was correct
+        # if (np.abs(err[i]) <= errTolerance):
+        sample = XXt[i]
+        analyzer_output = analyzer.analyze(sample[np.newaxis, ...])
+        maps[i] = analyzer_output
         if (np.abs(err[i]) <= errTolerance):
-            sample = XXt[i]
-            analyzer_output = analyzer.analyze(sample[np.newaxis, ...])
-            maps[i] = analyzer_output
+            summaryX[i] = analyzer_output
 
     print('done with explanation')
 
@@ -179,47 +182,27 @@ def getMapPerMethod(model: keras.Sequential,
     ### Compute the frequency of data at each point and the average relevance
     ### normalized by the sum over the area and the frequency above the 90th
     ### percentile of the map
+    # summaryX = copy.deepcopy(maps)
+    # for i in np.arange(0, np.shape(XXt)[0]):
+    #     if (np.abs(err[i]) >= errTolerance):
+    #         summaryX[i] = np.nan
+
     yearsUnique = np.unique(Yyt)
     if params['net'] == 'CNN':
         dTM = maps.reshape((yearsUnique.shape[0],int(np.shape(maps)[0]/yearsUnique.shape[0]),np.shape(maps)[1]*np.shape(maps)[2]))
         deepTaylorMaps = maps.reshape((np.shape(maps)[0],np.shape(maps)[1]*np.shape(maps)[2]))
+        summaryX = summaryX.reshape((yearsUnique.shape[0],int(np.shape(maps)[0]/yearsUnique.shape[0]),np.shape(maps)[1]*np.shape(maps)[2]))
     else:
         dTM = maps.reshape((yearsUnique.shape[0], int(np.shape(maps)[0] / yearsUnique.shape[0]), np.shape(maps)[1]))
         deepTaylorMaps = maps
+        summaryX = summaryX.reshape((yearsUnique.shape[0], int(np.shape(maps)[0] / yearsUnique.shape[0]), np.shape(maps)[1]))
 
-    summaryX = np.nanmean(dTM, axis = 1)
-    summaryDT = np.zeros((len(yearsUnique), np.shape(deepTaylorMaps)[1]))
-    summaryDTFreq = np.zeros((len(yearsUnique), np.shape(deepTaylorMaps)[1]))
-    summaryNanCount = np.zeros((len(yearsUnique), 1))
 
-    for i, year in enumerate(yearsUnique):
-        ### Years within N years of each year
-        j = np.where(np.abs(Yyt - year) <= withinYearInc)[0]
-
-        ### Average relevance across ensembles
-        a = np.nanmean(deepTaylorMaps[j, ...], axis=0)
-        summaryDT[i, :] = a[np.newaxis, ...]
-
-        ### Frequency of non-nans
-        nancount = np.count_nonzero(~np.isnan(deepTaylorMaps[j, 1]))
-        summaryNanCount[i] = nancount
-
-        ### Frequency above percentile cutoff
-        count = 0
-        for k in j:
-            b = deepTaylorMaps[k, :]
-            if (~np.isnan(b[0])):
-                count = count + 1
-                pVal = np.percentile(b, percCutoff)
-                summaryDTFreq[i, :] = summaryDTFreq[i, :] + np.where(b >= pVal, 1, 0)
-        if (count == 0):
-            summaryDTFreq[i, :] = 0
-        else:
-            summaryDTFreq[i, :] = summaryDTFreq[i, :] / count
+    # summaryX = np.nanmean(summaryX, axis = 1)
 
     print('<<<< Completed cleaning for wrong (> +- %s year) prediction  >>>>' %errTolerance)
 
-    return (summaryX, maps, summaryDTFreq, summaryNanCount)
+    return (summaryX, dTM)
 
 def NoiseGradMap(model: keras.Sequential,
                  method: Any,
@@ -260,16 +243,7 @@ def NoiseGradMap(model: keras.Sequential,
                                               explanation_fn=xg.saliency_explainer, **method[1])
 
 
-    for i in np.arange(0, np.shape(XXt)[0]):
-
-        # ensure error is small, i.e. model was correct
-        if not (np.abs(err[i]) <= errTolerance):
-
-            maps[i,...] = np.nan
-
-
     print('done with explanation')
-
     ###########################################################################
     ###########################################################################
     ###########################################################################
@@ -282,12 +256,26 @@ def NoiseGradMap(model: keras.Sequential,
     else:
         dTM = maps.reshape((yearsUnique.shape[0],int(np.shape(maps)[0]/yearsUnique.shape[0]),np.shape(maps)[1]))
 
-    summaryDT = np.nanmean(dTM, axis=1)
+    summaryDT = copy.deepcopy(maps)
+    for i in np.arange(0, np.shape(XXt)[0]):
+
+        # ensure error is small, i.e. model was correct
+        if np.abs(err[i]) > errTolerance:
+
+            summaryDT[i,...] = np.nan
+
+    if params['net'] == 'CNN':
+        summaryDT = summaryDT.reshape((yearsUnique.shape[0],int(np.shape(maps)[0]/yearsUnique.shape[0]),np.shape(maps)[1]*np.shape(maps)[2]))
+    else:
+        summaryDT = summaryDT.reshape((yearsUnique.shape[0],int(np.shape(maps)[0]/yearsUnique.shape[0]),np.shape(maps)[1]))
+
+    # summaryDT = np.nanmean(dTM, axis=1)
     print('<<<< Completed cleaning for wrong (> +- %s year) prediction  >>>>' %errTolerance)
 
     del models1
+   
 
-    return(summaryDT, maps)
+    return(summaryDT, dTM)
 
 def dataarrayXAI(lats, lons, var, directory, SAMPLEQ, type, method):
     print('\n>>> Using netcdf4LENS function!')

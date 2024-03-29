@@ -154,6 +154,9 @@ if data_settings['params']['net'] == 'MLP':
 results_model = []
 xaimapstime = {k[0]: [] for k in methods}
 xaimapstimeALL = {k[0]: [] for k in methods}
+if params['interpret'] == 'both':
+    xaimapstime_obs = {k[0]: [] for k in methods}
+    xaimapstimeALL_obs = {k[0]: [] for k in methods}
 
 
 # Define primary dataset.
@@ -190,13 +193,13 @@ lons = prep_data['lons']
 YtrainClassMulti = prep_data['YtrainClassMulti']
 YtestClassMulti = prep_data['YtestClassMulti']
 decadeChunks = prep_data['decadeChunks']
+data_obs = prep_data['data_obs']
 XobsS = prep_data['XobsS']
 yearsObs = prep_data['yearsObs']
 Xstdobs = prep_data['Xstdobs']
 Xmeanobs = prep_data['Xmeanobs']
 testIndices = prep_data['testIndices']
 trainIndices = prep_data['trainIndices']
-yearsObs = prep_data['yearsObs']
 lons_obs = prep_data['lons_obs']
 lats_obs = prep_data['lats_obs']
 obsyearstart = prep_data['obsyearstart']
@@ -238,7 +241,7 @@ for isample in range(SAMPLEQ):
     results_model.append(np.asarray([seasons, isample, np.asarray(exp_result['Training Results'])]))
 
     # Save trained model file.
-    dirname = directoryNet
+    dirname = directoryNet 
     savename = modelType + '_' + params['net'] + '_' + str(isample) + '_'+ settings['variq'] + '_' + str(SAMPLEQ)
     savenameModelTestTrain = modelType + '_' + str(isample) + '_'+ settings['variq'] + '_' + str(SAMPLEQ)
 
@@ -287,8 +290,13 @@ for isample in range(SAMPLEQ):
     if uai:
         params['yall'] = params['yearsall']
         params['XAI']['Indices'] = np.append(np.array(testIndices), np.array(trainIndices), axis =0)
+
         xaimaps = {k[0]: [] for k in methods}
         xaimapsALL = {k[0]: [] for k in methods}
+        if params['interpret'] == 'both':
+            xaimaps_obs = {k[0]: [] for k in methods}
+            xaimapsALL_obs = {k[0]: [] for k in methods}
+
         for method in methods:
 
             # Run NG and FG.
@@ -300,15 +308,40 @@ for isample in range(SAMPLEQ):
                     method[1]['img_height'] = XtrainS.shape[1]
                     method[1]['img_width'] = XtrainS.shape[2]
                 method[1]['sgd'] = nsc
-                xaimaps[method[0]], xaimapsALL[method[0]] = xai_aw.NoiseGradMap(
-                                                            model,method, np.append(XtrainS, XtestS, axis=0),
-                                                            np.append(Ytrain, Ytest, axis=0), **params)
+                if params['interpret'] == 'training':
+                    xaimaps[method[0]], xaimapsALL[method[0]] = xai_aw.NoiseGradMap(
+                                                                model,method, np.append(XtrainS, XtestS, axis=0),
+                                                                np.append(Ytrain, Ytest, axis=0), **params)
+                elif params['interpret'] == 'both':
+                    xaimaps[method[0]], xaimapsALL[method[0]] = xai_aw.NoiseGradMap(
+                                                                model,method, np.append(XtrainS, XtestS, axis=0),
+                                                                np.append(Ytrain, Ytest, axis=0), **params)
+                    xaimaps_obs[method[0]], xaimapsALL_obs[method[0]] =xai_aw.NoiseGradMap(
+                                                                model,method, XobsS, yearsObs[:, np.newaxis], 
+                                                                **params)
+                else:
+                    xaimaps[method[0]], xaimapsALL[method[0]] =xai_aw.NoiseGradMap(
+                                                                model,method, XobsS, yearsObs[:, np.newaxis], 
+                                                                **params)
                 # Reset noise scale for logging (otherwise file error).
                 method[1]['sgd'] = params['XAI']['noise_scale']
             else:
-                xaimaps[method[0]], xaimapsALL[method[0]], summaryDTFreq, summaryNanCount = xai_aw.getMapPerMethod(
-                                                                model,np.append(XtrainS, XtestS, axis=0),
-                                                                np.append(Ytrain, Ytest, axis=0), method, **params)
+                if params['interpret'] == 'training':
+                    xaimaps[method[0]], xaimapsALL[method[0]] = xai_aw.getMapPerMethod(
+                                                                    model,np.append(XtrainS, XtestS, axis=0),
+                                                                    np.append(Ytrain, Ytest, axis=0), method, **params)
+                elif params['interpret'] == 'both':
+                    xaimaps[method[0]], xaimapsALL[method[0]] = xai_aw.getMapPerMethod(
+                                                                    model,np.append(XtrainS, XtestS, axis=0),
+                                                                    np.append(Ytrain, Ytest, axis=0), method, **params)
+                    xaimaps_obs[method[0]], xaimapsALL_obs[method[0]] = xai_aw.getMapPerMethod(
+                                                                    model, XobsS, yearsObs[:, np.newaxis], 
+                                                                    method, **params)
+                else:
+                    xaimaps[method[0]], xaimapsALL[method[0]] = xai_aw.getMapPerMethod(
+                                                                    model, XobsS, yearsObs[:, np.newaxis], 
+                                                                    method, **params)
+
 
 
 
@@ -324,6 +357,10 @@ for isample in range(SAMPLEQ):
     for method in methods:
         xaimapstime[method[0]].append(np.array(xaimaps[method[0]]))
         xaimapstimeALL[method[0]].append(np.array(xaimapsALL[method[0]]))
+    if params['interpret'] == 'both':
+        for method in methods:
+            xaimapstime_obs[method[0]].append(np.array(xaimaps_obs[method[0]]))
+            xaimapstimeALL_obs[method[0]].append(np.array(xaimapsALL_obs[method[0]]))
 
     print('\n\n<<<<<<<<<< COMPLETED ITERATION = %s >>>>>>>>>>>\n\n' % (isample + 1))
 
@@ -334,13 +371,31 @@ for method in methods:
     # Reshape to shape #models, ensemble mem. (only for ALL), years, lat, lon.
     xaimapsall_m = np.array(xaimapstime[method[0]])
     xaimapsAll_m = np.array(xaimapstimeALL[method[0]])
-    xaimapsall_m = xaimapsall_m.reshape(1, SAMPLEQ,len(params['yearsall']), len(lats), len(lons))
-    xaimapsAll_m = xaimapsAll_m.reshape(1, SAMPLEQ, data.shape[0], len(params['yearsall']), len(lats), len(lons))
+    if params['interpret'] == 'training':
+        xaimapsall_m = xaimapsall_m.reshape(1, SAMPLEQ, data.shape[0], len(params['yearsall']), len(lats), len(lons))
+        xaimapsAll_m = xaimapsAll_m.reshape(1, SAMPLEQ, data.shape[0], len(params['yearsall']), len(lats), len(lons))
+    elif params['interpret'] == 'both':
+        xaimapsall_mobs = np.array(xaimapstime_obs[method[0]])
+        xaimapsAll_mobs = np.array(xaimapstimeALL_obs[method[0]])
+        xaimapsall_m = xaimapsall_m.reshape(1, SAMPLEQ, data.shape[0], len(params['yearsall']), len(lats), len(lons))
+        xaimapsAll_m = xaimapsAll_m.reshape(1, SAMPLEQ, data.shape[0], len(params['yearsall']), len(lats), len(lons))
+        xaimapsall_mobs = xaimapsall_mobs.reshape(1, SAMPLEQ, len(yearsObs),len(lats), len(lons))
+        xaimapsAll_mobs = xaimapsAll_mobs.reshape(1, SAMPLEQ, len(yearsObs),len(lats), len(lons))
+    else:
+        xaimapsall_m = xaimapsall_m.reshape(1, SAMPLEQ, len(yearsObs),len(lats), len(lons))
+        xaimapsAll_m = xaimapsAll_m.reshape(1, SAMPLEQ, len(yearsObs),len(lats), len(lons))
+    
 
     #Save.
-    xai_aw.dataarrayXAI(lats, lons, xaimapsall_m, directorydataoutput, SAMPLEQ, str(params['interpret'])+'_cleaned', method[2])
-    xai_aw.dataarrayXAI(lats, lons, xaimapsAll_m, directorydataoutput, SAMPLEQ, str(params['interpret'])+'_ALL', method[2])
+    if params['interpret'] == 'both':
+        xai_aw.dataarrayXAI(lats, lons, xaimapsall_m, directorydataoutput, SAMPLEQ, 'training'+'_cleaned', method[2])
+        xai_aw.dataarrayXAI(lats, lons, xaimapsAll_m, directorydataoutput, SAMPLEQ, 'training'+'_ALL', method[2])
 
+        xai_aw.dataarrayXAI(lats, lons, xaimapsall_mobs, directorydataoutput, SAMPLEQ, 'obs'+'_cleaned', method[2])
+        xai_aw.dataarrayXAI(lats, lons, xaimapsAll_mobs, directorydataoutput, SAMPLEQ, 'obs'+'_ALL', method[2])
+    else:
+        xai_aw.dataarrayXAI(lats, lons, xaimapsall_m, directorydataoutput, SAMPLEQ, str(params['interpret'])+'_cleaned', method[2])
+        xai_aw.dataarrayXAI(lats, lons, xaimapsAll_m, directorydataoutput, SAMPLEQ, str(params['interpret'])+'_ALL', method[2])
 
 settingsout = yaml.load(open('%s/%s_config.yaml' %(cfd,params['net'])), Loader=yaml.FullLoader)
 
@@ -348,7 +403,11 @@ settingsout = yaml.load(open('%s/%s_config.yaml' %(cfd,params['net'])), Loader=y
 methods[1][1]['noise_scale'] = params['XAI']['noise_scale']
 
 settingsout['xai_methods'] = methods
-settingsout['dataname'] = [str(params['interpret'])+'_cleaned',str(params['interpret'])+'_ALL']
+if params['interpret'] == 'both':
+    settingsout['dataname'] = ['training_cleaned','training_ALL','obs_cleaned','obs_ALL']
+else:
+    settingsout['dataname'] = [str(params['interpret'])+'_cleaned',str(params['interpret'])+'_ALL']
+
 settingsout['diroutput'] = directorydataoutput
 settingsout['dirfig'] = directoryfigure
 settingsout['dirnet'] = directoryNet

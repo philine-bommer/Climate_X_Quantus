@@ -3,7 +3,7 @@
 
 # Climate X Quantus
 
-This repository contains the code and supplementary packages for the paper **["Finding the right XAI Method --- A Guide for the Evaluation and Ranking of Explainable AI Methods in Climate Science](https://arxiv.org/abs/2303.00652)**  by Bommer et. al.
+This repository contains the code and supplementary packages for the paper **["Finding the right XAI Method --- A Guide for the Evaluation and Ranking of Explainable AI Methods in Climate Science](https://doi.org/10.1175/AIES-D-23-0074.1)**  by Bommer et. al.
 
 ![Version](https://img.shields.io/badge/version-0.0.1-green)
 
@@ -20,12 +20,15 @@ This repository contains the code and supplementary packages for the paper **["F
 If you find this work or papers for included methods interesting or useful in your research, use the following Bibtex annotation to cite us:
 
 ```bibtex
-@article{bommer2023finding,
- author = {Philine Bommer, Marlene Kretschmer, Anna Hedström, Dilyara Bareeva, Marina M.-C. Höhne},
-  title = {Finding the right XAI method -- A Guide for the Evaluation and Ranking of Explainable AI Methods in Climate Science},
-  doi = {10.48550/arXiv.2303.00652},
-  url = {https://arxiv.org/abs/2303.00652},
-  publisher = {arXiv},
+@article {FindingtherightXAIMethodBommer2024,
+      author = "Philine Lou Bommer and Marlene Kretschmer and Anna Hedström and Dilyara Bareeva and Marina M.-C. Höhne",
+      title = "Finding the right XAI Method — A Guide for the Evaluation and Ranking of Explainable AI Methods in Climate Science",
+      journal = "Artificial Intelligence for the Earth Systems",
+      year = "2024",
+      publisher = "American Meteorological Society",
+      address = "Boston MA, USA",
+      doi = "10.1175/AIES-D-23-0074.1",
+      url = "https://journals.ametsoc.org/view/journals/aies/aop/AIES-D-23-0074.1/AIES-D-23-0074.1.xml"
 }
 ```
 
@@ -98,13 +101,7 @@ Create conda virtual env from sepc file. (Note that, innvestigate v.1.0.9 might 
 conda create --name myenv --file spec-file.txt
 ```
 
-or create and install packages from spec-file. (Note that, innvestigate v.1.0.9 might has to be installed via pip)
-
-```setup
-conda create --name myenv python=3.7.11
-conda activate myenv
-conda install --name myenv --file spec-file.txt
-```
+(Note that, innvestigate v.1.0.9 might has to be installed via pip)
 
 [comment]: <> (Make sure to install the requirements in the conda virtual env.)
 
@@ -201,11 +198,31 @@ train:
 make sure to maintain the format of each adjusted parameter e.g. if '[lr]' maintain list format. 
 The trained network is saved und '/Climate_X_Quantus/Network/' and the explanations in '/Climate_X_Quantus/Data/Training/NET/' for both NET configurations.
 
+During training and explanation you also have the option to explain based on both the CESM 1 data set and the 20CRv3 data set by adjusting **'net_config.yaml'** (with net = 'MLP'/'CNN' for respective network training):
+```setup
+params: 
+      interpret: both
+```
+with the options being *both*. *training* (CESM 1) or *obs* (20CRv3).
+
 #### Postprocessing:
 In order to prepare the data for evaluation please run the 'data_postprocessing.py' also contained in 'Climate_X_Quantus/Experiments/'. No further adjustments of the 'Post_config.yaml' are needed.
 
+During the postprocessing step you again have the option to decide whether explanations used for evaluation are based on either the CESM 1 data set (*training*) and the 20CRv3 data set (*obs*) by adjusting **'net_data.yaml'** (with net = 'MLP'/'CNN' for the respective network):
+```setup
+params: 
+      interpret: training
+```
+**Note that default for the paper is the training set up.**
+
+In addition you can choose whether only correct predictions (*'cleaned'*) are explained (as in the paper) or if you want 50 random explanations throughout the input data, independent of prediction outcome (*'uncleaned'*)
+by adjusting **'Post_config.yaml'**
+```setup
+exptype: cleaned
+```
+
 ### Explanation method comparison (Section 4b)
-The explanation method comparison experiment according to section 4b in **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)** can be performed by running **'QuantusExperiment_skill.py'**. Here you can choose to create results for 
+The explanation method comparison experiment according to section 4b in **[Bommer et. al 2023](https://doi.org/10.1175/AIES-D-23-0074.1)** can be performed by running **'QuantusExperiment_skill.py'**. Here you can choose to create results for 
 two representative metrics of either the robustness ("Robustness") property, faithfulness ("Faithfulness") or complexity with randomisation and localisation ("Complexity") by adjusting the **'plot_config.yaml'** as follows: 
 ```setup
 base: 1
@@ -218,8 +235,8 @@ The resulting mean skill scores across 50 explanations and standard error of the
 **'/Climate_X_Quantus/Data/Quantus/Baseline/'**
 
 ### Comprehensive Evaluation
-The comparison across network architecture according to section 4c in **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)** can be performed by running **'QuantusExperiment_skill.py'** for the CNN.
-To perform the experiment for the CNN as in the paper please in Data_config.yaml set net = 'CNN' and run data_postprocessing.py first. Maintain the same settings in **'plot_config.yaml'**.
+The comparison across network architecture according to section 4c in **[Bommer et. al 2023](https://doi.org/10.1175/AIES-D-23-0074.1)** can be performed by running **'QuantusExperiment_skill.py'** for the CNN.
+To perform the experiment for the CNN as in the paper *please in **'Data_config.yaml'** set net = 'CNN' and run **'data_postprocessing.py'** first*. Maintain the same settings in **'plot_config.yaml'**.
 
 The resulting mean skill scores across 50 explanations and standard error of the mean (SEM) will be saved as individual pkl.-files and npz.-files to enable plotting as provided in **Plot_Tables.ipynb**, which includes
 the plot script for Figure 8, 9, and 10a (the spyder plot for the MLP). All results can be found in 
@@ -227,31 +244,54 @@ the plot script for Figure 8, 9, and 10a (the spyder plot for the MLP). All resu
 
 ### DeepShap
 The calculations have been seperated into a Colab python notebook due to version conflicts with innvestigate v.1.0.9. Thus, the evaluation protocol 
-for Deep Shap following evaluation procedure and skill score calculation described in **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)** can be found in **'Experiment_DeepShap.ipynb'**. 
+for Deep Shap following evaluation procedure and skill score calculation described in **[Bommer et. al 2023](https://doi.org/10.1175/AIES-D-23-0074.1)** can be found in **'Experiment_DeepShap.ipynb'**. 
 *We suggest running the notebook using Google Colab.*
 
 
 ## Additional Plots
 
 ### Figures 8 - 10a
-The plots for Figures 8 - 10a from Section 4 in **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)** can be reproduced by running the python notebook. 
+The plots for Figures 8 - 10a from Section 4 in **[Bommer et. al 2023](https://doi.org/10.1175/AIES-D-23-0074.1)** can be reproduced by running the python notebook **'Plot_Tables.ipynb'**. 
 *We highly suggest running the notebooks via Google Colab.*
 
 Follow the instructions as details in the notebook. All figures will be saved in '/Climate_X_Quantus/Figures/'.
 
-### Figures B4 and B5
-The plot routine to plot the temporal average of the explanation maps across all XAI methods as displayed in Figure B4 and B5 in **[Bommer et. al 2023](https://arxiv.org/abs/2303.00652)** run **'Plot_temporalAverageMaps.py'**.
-The DeepShap explanations have to be generated for both networks by running **'Explanation_DeepShap.ipynb'**. Before running the plot routine, adjust the **'plot_config.yaml'** as follows:
+### Figures 7, 10 b and c
+
+The plots of individual year explanation maps and zoomed in windiws for Figures 7, 10b and c from Section 4 can be reproduced by running **'Plot_temporalAverageMaps.py'**.
+
+The individual global maps can be plotted by adjusting the **'plot_config.yaml'** as follows: 
+```setup
+params: 
+  plot:
+    region: []
+```
+
+The individual zoomed-in maps can be plotted by adjusting the **'plot_config.yaml'** as follows: 
+```setup
+params: 
+  plot:
+    region: [270,360,20,80]
+```
+which is also described in the code comments.
+
+### Figures B3, B4 and B5
+The plot routine to plot the temporal average of the explanation maps across all XAI methods as displayed in Figure B4 and B5 in **[Bommer et. al 2023](https://doi.org/10.1175/AIES-D-23-0074.1)** run **'Plot_temporalAverageMaps.py'**.
+The DeepShap explanations have to be generated for both networks by running **'Explanation_DeepShap.ipynb'**. Before running the plot routine, adjust the **'Data_config.yaml'** as follows:
 ```setup
 base: net
 ```
-with net = 'MLP' to plot the explanation of the MLP predictions or net = 'CNN' to plot the explanation amps of the CNN predictions. 
+with net = 'MLP' to plot the explanation of the MLP predictions or net = 'CNN' to plot the explanation maps of the CNN predictions. 
 
-
+The Plots a and b in Figure B3 can be plotted by running **'Plot_NetworkPerformance.py'**. Before running the plot routine, adjust the **'Data_config.yaml'** as follows:
+```setup
+base: net
+```
+with net = 'MLP' to plot the explanation of the MLP predictions or net = 'CNN' to plot the explanation maps of the CNN predictions. 
 
 ## Further references
 
+* [CCAI tutorial on climate XAI evaluation with Quantus](https://colab.research.google.com/drive/1RW4jRCtjL1zx5Cm6cphtHmWFIw30gRM1)
 * [Quantus Tutorials](https://github.com/understandable-machine-intelligence-lab/Quantus)
 * [Explanation Tutorial](https://github.com/albermax/innvestigate)
 
-**Please note that end of april we will link here to a TF2 tutorial on climate XAI evaluation with Quantus **

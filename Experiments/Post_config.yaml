@@ -5,9 +5,10 @@ dataset_obs: 20CRv3
 datasets:
 - ALL
 datatype: training
-diroutput: Climate_X_Quantus/Data/Quantus/CNN/0/
+diroutput: Climate_X_Quantus/Data/Quantus/MLP/0/
 end_year: 2080
-exptype: uncleaned
+exptype: cleaned
+idx_random: 1
 lr: 0.01
 masked:
 - 58
@@ -15,10 +16,10 @@ masked:
 - 115
 - 136
 mod: 0
-net: CNN
+net: MLP
 nyears: 40
-outdata: Climate_X_Quantus/Data/Quantus/CNN/0/Postprocessed_data_ALL.npz
-outmod: Climate_X_Quantus/Data/Network/lens_CNN_0_T2M_1.tf
+outdata: Climate_X_Quantus/Data/Quantus/MLP/0/Postprocessed_data_ALL_cleaned.npz
+outmod: Climate_X_Quantus/Data/Network/lens_MLP_0_T2M_1.tf
 params:
   SAMPLEQ: 100
   XAI:
@@ -60,8 +61,6 @@ variq: T2M
 xai_methods: !!python/tuple
 - FusionGrad
 - dtype: flat
-  img_height: 95
-  img_width: 144
   sgd: 0.5
   std: 0.25
 - FG
